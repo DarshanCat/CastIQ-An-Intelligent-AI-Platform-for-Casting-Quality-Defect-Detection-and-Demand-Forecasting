@@ -1,0 +1,76 @@
+{
+  "grades": [
+    {
+      "grade": "IS 400/12",
+      "tensile_min": 400, "tensile_max": 500,
+      "hardness_min": 130, "hardness_max": 180,
+      "elongation": 12,
+      "composition": {"carbon": 3.5, "silicon": 2.5, "manganese": 0.3, "magnesium": 0.04},
+      "applications": ["general", "pharma", "low_load"],
+      "corrosion": "medium", "temp_max": 300,
+      "price_per_kg": 68,
+      "lead_days": 14,
+      "description": "Best for general purpose low-stress components. Excellent machinability and weldability."
+    },
+    {
+      "grade": "IS 500/7",
+      "tensile_min": 500, "tensile_max": 600,
+      "hardness_min": 170, "hardness_max": 230,
+      "elongation": 7,
+      "composition": {"carbon": 3.4, "silicon": 2.2, "manganese": 0.4, "magnesium": 0.05},
+      "applications": ["hydraulics", "general", "medium_load"],
+      "corrosion": "medium", "temp_max": 350,
+      "price_per_kg": 75,
+      "lead_days": 18,
+      "description": "Ideal for hydraulic manifolds and barrels. Good balance of strength and ductility."
+    },
+    {
+      "grade": "IS 600/3",
+      "tensile_min": 600, "tensile_max": 700,
+      "hardness_min": 190, "hardness_max": 270,
+      "elongation": 3,
+      "composition": {"carbon": 3.3, "silicon": 2.0, "manganese": 0.5, "magnesium": 0.05},
+      "applications": ["locomotives", "heavy_engineering", "high_load"],
+      "corrosion": "low", "temp_max": 400,
+      "price_per_kg": 82,
+      "lead_days": 21,
+      "description": "For high-load structural components. Used in locomotive bogies and heavy engineering parts."
+    },
+    {
+      "grade": "IS 700/2",
+      "tensile_min": 700, "tensile_max": 800,
+      "hardness_min": 229, "hardness_max": 302,
+      "elongation": 2,
+      "composition": {"carbon": 3.2, "silicon": 1.8, "manganese": 0.6, "magnesium": 0.06},
+      "applications": ["wind_energy", "heavy_engineering", "high_load"],
+      "corrosion": "low", "temp_max": 450,
+      "price_per_kg": 90,
+      "lead_days": 25,
+      "description": "Wind turbine hubs and heavy structural parts requiring very high strength."
+    },
+    {
+      "grade": "IS 800/2",
+      "tensile_min": 800, "tensile_max": 950,
+      "hardness_min": 248, "hardness_max": 352,
+      "elongation": 2,
+      "composition": {"carbon": 3.1, "silicon": 1.6, "manganese": 0.7, "magnesium": 0.06},
+      "applications": ["heavy_engineering", "extreme_load"],
+      "corrosion": "low", "temp_max": 500,
+      "price_per_kg": 98,
+      "lead_days": 28,
+      "description": "Maximum strength grade for extreme load-bearing heavy engineering applications."
+    },
+    {
+      "grade": "SiMo 0.8",
+      "tensile_min": 450, "tensile_max": 550,
+      "hardness_min": 140, "hardness_max": 200,
+      "elongation": 8,
+      "composition": {"carbon": 3.4, "silicon": 4.0, "manganese": 0.3, "magnesium": 0.05},
+      "applications": ["pharma", "high_temp", "corrosion_resistant"],
+      "corrosion": "high", "temp_max": 700,
+      "price_per_kg": 105,
+      "lead_days": 30,
+      "description": "High silicon-molybdenum grade for elevated temperature and corrosion resistance. Ideal for pharma."
+    }
+  ]
+}

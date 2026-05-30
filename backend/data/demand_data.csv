@@ -1,0 +1,151 @@
+date,sector,orders
+2023-01-01,Hydraulics,48.8
+2023-02-01,Hydraulics,43.5
+2023-03-01,Hydraulics,48.1
+2023-04-01,Hydraulics,50.8
+2023-05-01,Hydraulics,45.6
+2023-06-01,Hydraulics,47.0
+2023-07-01,Hydraulics,44.4
+2023-08-01,Hydraulics,34.8
+2023-09-01,Hydraulics,44.1
+2023-10-01,Hydraulics,42.0
+2023-11-01,Hydraulics,38.3
+2023-12-01,Hydraulics,42.7
+2024-01-01,Hydraulics,48.8
+2024-02-01,Hydraulics,49.2
+2024-03-01,Hydraulics,51.8
+2024-04-01,Hydraulics,48.2
+2024-05-01,Hydraulics,55.8
+2024-06-01,Hydraulics,52.3
+2024-07-01,Hydraulics,50.3
+2024-08-01,Hydraulics,40.5
+2024-09-01,Hydraulics,51.4
+2024-10-01,Hydraulics,45.0
+2024-11-01,Hydraulics,44.1
+2024-12-01,Hydraulics,56.3
+2025-01-01,Hydraulics,51.4
+2025-02-01,Hydraulics,49.2
+2025-03-01,Hydraulics,56.0
+2025-04-01,Hydraulics,49.6
+2025-05-01,Hydraulics,62.6
+2025-06-01,Hydraulics,54.9
+2023-01-01,Wind Energy,31.3
+2023-02-01,Wind Energy,46.2
+2023-03-01,Wind Energy,37.0
+2023-04-01,Wind Energy,50.1
+2023-05-01,Wind Energy,36.5
+2023-06-01,Wind Energy,40.7
+2023-07-01,Wind Energy,33.8
+2023-08-01,Wind Energy,42.9
+2023-09-01,Wind Energy,41.6
+2023-10-01,Wind Energy,30.6
+2023-11-01,Wind Energy,38.5
+2023-12-01,Wind Energy,37.9
+2024-01-01,Wind Energy,47.4
+2024-02-01,Wind Energy,46.6
+2024-03-01,Wind Energy,46.3
+2024-04-01,Wind Energy,48.0
+2024-05-01,Wind Energy,58.4
+2024-06-01,Wind Energy,64.8
+2024-07-01,Wind Energy,50.7
+2024-08-01,Wind Energy,42.6
+2024-09-01,Wind Energy,51.9
+2024-10-01,Wind Energy,43.0
+2024-11-01,Wind Energy,44.4
+2024-12-01,Wind Energy,49.7
+2025-01-01,Wind Energy,53.5
+2025-02-01,Wind Energy,58.5
+2025-03-01,Wind Energy,57.3
+2025-04-01,Wind Energy,69.1
+2025-05-01,Wind Energy,65.6
+2025-06-01,Wind Energy,69.2
+2023-01-01,Locomotives,26.9
+2023-02-01,Locomotives,24.5
+2023-03-01,Locomotives,31.6
+2023-04-01,Locomotives,37.7
+2023-05-01,Locomotives,31.1
+2023-06-01,Locomotives,28.3
+2023-07-01,Locomotives,25.6
+2023-08-01,Locomotives,24.2
+2023-09-01,Locomotives,25.2
+2023-10-01,Locomotives,22.3
+2023-11-01,Locomotives,31.0
+2023-12-01,Locomotives,27.4
+2024-01-01,Locomotives,30.7
+2024-02-01,Locomotives,36.9
+2024-03-01,Locomotives,38.8
+2024-04-01,Locomotives,34.4
+2024-05-01,Locomotives,35.7
+2024-06-01,Locomotives,35.6
+2024-07-01,Locomotives,31.0
+2024-08-01,Locomotives,24.5
+2024-09-01,Locomotives,30.5
+2024-10-01,Locomotives,30.9
+2024-11-01,Locomotives,30.2
+2024-12-01,Locomotives,27.8
+2025-01-01,Locomotives,32.2
+2025-02-01,Locomotives,33.2
+2025-03-01,Locomotives,35.8
+2025-04-01,Locomotives,41.3
+2025-05-01,Locomotives,41.7
+2025-06-01,Locomotives,37.8
+2023-01-01,Pharma,19.1
+2023-02-01,Pharma,21.5
+2023-03-01,Pharma,21.8
+2023-04-01,Pharma,22.6
+2023-05-01,Pharma,21.7
+2023-06-01,Pharma,22.4
+2023-07-01,Pharma,26.1
+2023-08-01,Pharma,22.4
+2023-09-01,Pharma,19.5
+2023-10-01,Pharma,19.5
+2023-11-01,Pharma,19.7
+2023-12-01,Pharma,23.8
+2024-01-01,Pharma,26.0
+2024-02-01,Pharma,24.4
+2024-03-01,Pharma,30.0
+2024-04-01,Pharma,28.9
+2024-05-01,Pharma,33.1
+2024-06-01,Pharma,30.0
+2024-07-01,Pharma,32.2
+2024-08-01,Pharma,27.0
+2024-09-01,Pharma,26.8
+2024-10-01,Pharma,28.2
+2024-11-01,Pharma,30.7
+2024-12-01,Pharma,31.4
+2025-01-01,Pharma,29.9
+2025-02-01,Pharma,34.9
+2025-03-01,Pharma,36.2
+2025-04-01,Pharma,36.3
+2025-05-01,Pharma,36.1
+2025-06-01,Pharma,40.4
+2023-01-01,Heavy Engineering,52.7
+2023-02-01,Heavy Engineering,54.2
+2023-03-01,Heavy Engineering,66.4
+2023-04-01,Heavy Engineering,64.7
+2023-05-01,Heavy Engineering,62.7
+2023-06-01,Heavy Engineering,65.2
+2023-07-01,Heavy Engineering,59.7
+2023-08-01,Heavy Engineering,55.3
+2023-09-01,Heavy Engineering,56.3
+2023-10-01,Heavy Engineering,51.4
+2023-11-01,Heavy Engineering,47.4
+2023-12-01,Heavy Engineering,52.1
+2024-01-01,Heavy Engineering,55.5
+2024-02-01,Heavy Engineering,64.2
+2024-03-01,Heavy Engineering,59.7
+2024-04-01,Heavy Engineering,56.5
+2024-05-01,Heavy Engineering,67.3
+2024-06-01,Heavy Engineering,56.1
+2024-07-01,Heavy Engineering,48.7
+2024-08-01,Heavy Engineering,58.9
+2024-09-01,Heavy Engineering,49.8
+2024-10-01,Heavy Engineering,56.3
+2024-11-01,Heavy Engineering,51.5
+2024-12-01,Heavy Engineering,51.2
+2025-01-01,Heavy Engineering,54.7
+2025-02-01,Heavy Engineering,63.4
+2025-03-01,Heavy Engineering,68.1
+2025-04-01,Heavy Engineering,66.2
+2025-05-01,Heavy Engineering,68.6
+2025-06-01,Heavy Engineering,58.5

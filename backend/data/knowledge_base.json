@@ -1,0 +1,66 @@
+[
+  {
+    "keywords": ["what", "vspl", "company", "about", "vijay", "spheroidals"],
+    "answer": "Vijay Spheroidals Pvt Ltd (VSPL) is a Bengaluru-based manufacturer of ductile iron centrifugal castings with 30+ years of experience. We are ISO 9001:2015 certified and produce hydraulic manifolds, barrels, cast round bars, and headend covers serving wind energy, locomotives, hydraulics, pharma, and heavy engineering sectors."
+  },
+  {
+    "keywords": ["capacity", "production", "monthly", "tonnes", "output"],
+    "answer": "VSPL has a monthly production capacity of 200 tonnes. Our facility runs multiple centrifugal casting machines capable of producing components from 25mm to 600mm diameter."
+  },
+  {
+    "keywords": ["grade", "grades", "available", "alloy", "types"],
+    "answer": "VSPL produces the following ductile iron grades:\n- IS 400/12: General purpose, pharma\n- IS 500/7: Hydraulics, medium load\n- IS 600/3: Locomotives, heavy engineering\n- IS 700/2: Wind energy, high strength\n- IS 800/2: Extreme load applications\n- SiMo 0.8: High temperature & corrosion resistance"
+  },
+  {
+    "keywords": ["delivery", "lead time", "days", "weeks", "how long", "timeline"],
+    "answer": "Standard lead times at VSPL:\n- IS 400/12: 14 days\n- IS 500/7: 18 days\n- IS 600/3: 21 days\n- IS 700/2: 25 days\n- IS 800/2: 28 days\n- SiMo 0.8: 30 days\nExpress delivery available for premium orders. Contact our sales team for urgent requirements."
+  },
+  {
+    "keywords": ["certification", "iso", "quality", "standard", "certified"],
+    "answer": "VSPL is ISO 9001:2015 certified. Our quality control includes spectroscopic analysis, mechanical testing (tensile, hardness, elongation), ultrasonic testing (UT), radiographic testing, dimensional inspection, and surface finish checks on every batch."
+  },
+  {
+    "keywords": ["casting", "process", "centrifugal", "how", "manufacture", "made"],
+    "answer": "VSPL uses the centrifugal casting process:\n1. Alloy preparation and spectroscopic verification\n2. Melting in induction furnace (1380–1480°C)\n3. Magnesium treatment for nodularization\n4. Pouring into rotating mold (800–1400 RPM)\n5. Solidification under centrifugal force\n6. Heat treatment if required\n7. NDT inspection and dimensional check\n8. Final machining and dispatch"
+  },
+  {
+    "keywords": ["safety", "ppe", "equipment", "protection", "gear", "precaution"],
+    "answer": "Mandatory PPE at VSPL casting floor:\n- Heat-resistant face shield and goggles\n- Aluminized jacket and gloves (near furnace)\n- Safety boots with metatarsal guard\n- Ear protection (>85dB zones)\n- Hard hat at all times\nEmergency: Fire extinguishers every 15m. Emergency exits marked in green. Evacuation assembly at Gate 2."
+  },
+  {
+    "keywords": ["temperature", "pour", "melting", "furnace", "heat"],
+    "answer": "Recommended pour temperatures by grade:\n- IS 400/12: 1380–1420°C\n- IS 500/7: 1390–1430°C\n- IS 600/3: 1400–1440°C\n- IS 700/2: 1410–1450°C\n- IS 800/2: 1420–1460°C\n- SiMo 0.8: 1430–1470°C\nAlways verify with thermocouple before pouring. Temperature outside range → hold and re-check."
+  },
+  {
+    "keywords": ["defect", "defects", "reject", "rejection", "porosity", "crack", "shrinkage"],
+    "answer": "Common casting defects and causes at VSPL:\n- Porosity: Low pour temperature, high gas content\n- Cold shuts: Low temperature, slow pour rate\n- Shrinkage: Insufficient feed metal, high carbon\n- Cracks: Rapid cooling, high Mn content\n- Inclusions: Dirty ladle, slag carryover\nAll defective parts are quarantined and sent for root cause analysis before scrapping."
+  },
+  {
+    "keywords": ["price", "cost", "pricing", "rate", "per kg", "quote"],
+    "answer": "Indicative pricing (ex-works, Bengaluru):\n- IS 400/12: ₹68/kg\n- IS 500/7: ₹75/kg\n- IS 600/3: ₹82/kg\n- IS 700/2: ₹90/kg\n- IS 800/2: ₹98/kg\n- SiMo 0.8: ₹105/kg\nFinal pricing subject to quantity, complexity, and machining requirements. Contact sales for formal quotation."
+  },
+  {
+    "keywords": ["contact", "sales", "email", "phone", "address", "location"],
+    "answer": "VSPL Contact Details:\n📍 Bengaluru, Karnataka, India\n🌐 www.vijayspheroidals.in\nFor quotations and orders, use the RFQ Intelligence module on this platform or contact our sales team directly via the website."
+  },
+  {
+    "keywords": ["rpd", "prototype", "rapid", "3d", "printing", "sample"],
+    "answer": "VSPL offers Rapid Prototyping & Development (RPD) services:\n- 3D printed sand molds for prototype castings\n- First article inspection report (FAIR)\n- Sample delivery in 7–10 days\n- Ideal for new product development before full production\nRPD components undergo full mechanical testing before approval."
+  },
+  {
+    "keywords": ["wind", "energy", "turbine", "renewable"],
+    "answer": "For wind energy applications, VSPL recommends IS 700/2 grade. Key properties: 700–800 MPa tensile, 229–302 BHN hardness, max operating temp 450°C. Used for turbine hubs, main frames, and rotor housings. Special low-temperature Charpy impact testing available for cold climate installations."
+  },
+  {
+    "keywords": ["hydraulic", "manifold", "barrel", "cylinder", "fluid"],
+    "answer": "For hydraulic applications, VSPL recommends IS 500/7 grade. This grade offers excellent pressure-holding capability, good machinability for internal bores, and resistance to hydraulic fluid environments. Standard bore tolerances: H7 for mating surfaces. Hydrostatic pressure testing up to 350 bar available."
+  },
+  {
+    "keywords": ["pharma", "pharmaceutical", "food", "sanitary", "hygiene"],
+    "answer": "For pharma and food-grade applications, VSPL recommends SiMo 0.8 or IS 400/12. These grades offer:\n- High corrosion resistance\n- Smooth surface finish (Ra ≤ 1.6 µm achievable)\n- Chemical inertness\n- Compliance with FDA material standards\nAll pharma-grade castings come with full material traceability documentation."
+  },
+  {
+    "keywords": ["hello", "hi", "hey", "help", "assist", "good morning", "good afternoon"],
+    "answer": "Hello! I'm the VSPL Smart Assistant. I can help you with:\n- Product grades and alloy compositions\n- Casting process and quality standards\n- Delivery timelines and pricing\n- Safety procedures\n- Application-specific recommendations\n\nWhat would you like to know?"
+  }
+]
