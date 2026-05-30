@@ -1,5 +1,5 @@
 """
-VSPL AI Platform — Large Dataset Generation & Deep Learning Training
+VSPL AI Platform — Advanced Physics-Based Deep Learning Training Suite
 File: backend/train_deep_learning.py
 """
 import sys
@@ -36,74 +36,43 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 print("=" * 65)
-print(" 🧠 VSPL AI Platform — Large-Scale Deep Learning Pipeline")
+print(" 🧠 VSPL AI Platform — Large-Scale Physics Deep Learning Pipeline")
 print("=" * 65)
 
-# ── 1. GENERATE LARGE-SCALE INDUSTRIAL DATASET (50,000 ROWS) ──
-print("\n[1/4] Simulating 50,000 high-fidelity casting runs...")
-
-N = 50000
-
-temperature     = np.random.uniform(1340, 1530, N)
-rpm             = np.random.uniform(650, 1650, N)
-carbon_pct      = np.random.uniform(2.9, 4.1, N)
-silicon_pct     = np.random.uniform(1.4, 3.1, N)
-cooling_time    = np.random.uniform(20, 140, N)
-mold_type       = np.random.choice(['Permanent', 'Sand', 'Die'], N, p=[0.5, 0.3, 0.2])
-metal_flow_rate = np.random.uniform(0.4, 2.6, N)
-
-# Complex non-linear physical metallurgy interaction equations
-quality = 100.0
-# Temperature thermal shocks
-quality -= np.abs(temperature - 1425) * 0.28
-# Centrifugal spin speed stability
-quality -= np.abs(rpm - 1100) * 0.055
-# Carbon Equivalent (CE) ratio matching (CE = C + Si/3)
-ce = carbon_pct + (silicon_pct / 3.0)
-quality -= np.abs(ce - 4.3) * 15.0
-# Heat dissipation times per mold type
-mold_factor = np.array([{'Permanent': 75.0, 'Sand': 90.0, 'Die': 65.0}[m] for m in mold_type])
-quality -= np.abs(cooling_time - mold_factor) * 0.22
-# Metal flow rates
-quality -= np.abs(metal_flow_rate - 1.5) * 6.5
-# Add metallurgical mold bonus and gaussian process noise
-mold_bonus = np.array([{'Permanent': 4.0, 'Sand': -1.0, 'Die': 2.0}[m] for m in mold_type])
-quality += mold_bonus + np.random.normal(0, 3.5, N)
-quality = np.clip(quality, 0.0, 100.0)
-
-# 1 = Reject (Quality < 65), 0 = Good
-reject = (quality < 65.0).astype(int)
-
-# Map mold types to integers for PyTorch model input
-mold_map = {'Permanent': 0, 'Sand': 1, 'Die': 2}
-mold_enc = np.array([mold_map[m] for m in mold_type])
-
-df_large = pd.DataFrame({
-    'pour_temp': temperature.round(1),
-    'spin_rpm': rpm.round(0).astype(int),
-    'carbon_pct': carbon_pct.round(3),
-    'silicon_pct': silicon_pct.round(3),
-    'cooling_sec': cooling_time.round(1),
-    'flow_rate': metal_flow_rate.round(2),
-    'mold_type': mold_type,
-    'quality_score': quality.round(2),
-    'reject': reject
-})
-
 large_csv_path = DATA_DIR / 'casting_data_large.csv'
-df_large.to_csv(large_csv_path, index=False)
-print(f"   ✅ Saved large dataset ({df_large.shape[0]} rows) to: {large_csv_path.name}")
+
+# Ensure physics-derived dataset is generated
+if not large_csv_path.exists():
+    print("\n[!] Physics-derived dataset not found. Generating now...")
+    try:
+        from backend.data.generate_physics_data import N as dummy
+    except ImportError:
+        # If running as standard script, execute generate_physics_data directly
+        import subprocess
+        subprocess.run([sys.executable, str(DATA_DIR / 'generate_physics_data.py')], check=True)
+
+# ── 1. LOAD LARGE-SCALE INDUSTRIAL DATASET (50,000 ROWS) ──
+print(f"\n[1/4] Loading simulated centrifugal casting database...")
+df = pd.read_csv(large_csv_path)
+print(f"   ✅ Loaded large physics dataset ({df.shape[0]} rows) from: {large_csv_path.name}")
 
 # ── 2. PREPROCESS DATA & PYTORCH DATALOADERS ──
 print("\n[2/4] Preprocessing datasets & scaling features...")
 
-# Columns for inputs
-feats = ['pour_temp', 'spin_rpm', 'carbon_pct', 'silicon_pct', 'cooling_sec', 'flow_rate', 'mold_enc']
-X = np.column_stack([
-    temperature, rpm, carbon_pct, silicon_pct, cooling_time, metal_flow_rate, mold_enc
-])
-y_score = quality
-y_reject = reject
+# Physics-derived features list (as specified by user)
+feats = [
+    # Raw inputs
+    'carbon_pct', 'silicon_pct', 'manganese_pct', 'phosphorus_pct',
+    'magnesium_added_pct', 'treatment_time_min', 'rpm', 'mold_diameter_m',
+    'pour_temp_c', 'mold_preheat_c', 'wall_thickness_mm', 'mold_enc',
+    # Physics-derived (the secret sauce)
+    'carbon_equivalent', 'superheat_c', 'G_factor',
+    'Mg_effective_pct', 'nodularity_index', 'cooling_rate_cs'
+]
+
+X = df[feats].values
+y_score = df['quality_score'].values
+y_reject = df['reject'].values
 
 # Train / Test split (80% train, 20% test)
 X_train, X_test, y_s_train, y_s_test, y_r_train, y_r_test = train_test_split(
@@ -137,37 +106,71 @@ test_dataset = CastingDataset(X_test_scaled, y_s_test, y_r_test)
 train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
 
-# ── 3. DEFINE PYTORCH MULTI-TASK DEEP NEURAL NETWORK (DNN) ──
+# ── 3. DEFINE PYTORCH MULTI-TASK DENSE RESIDUAL NEURAL NETWORK (DNN) ──
+
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.fc1 = nn.Linear(dim, dim)
+        self.bn1 = nn.BatchNorm1d(dim)
+        self.elu = nn.ELU()
+        self.fc2 = nn.Linear(dim, dim)
+        self.bn2 = nn.BatchNorm1d(dim)
+        
+    def forward(self, x):
+        residual = x
+        out = self.fc1(x)
+        out = self.bn1(out)
+        out = self.elu(out)
+        out = self.fc2(out)
+        out = self.bn2(out)
+        out += residual  # skip connection!
+        return self.elu(out)
+
 class CastingMultitaskDNN(nn.Module):
     def __init__(self, input_dim):
         super(CastingMultitaskDNN, self).__init__()
         # Shared representations
-        self.shared = nn.Sequential(
-            nn.Linear(input_dim, 128),
+        self.shared_input = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.BatchNorm1d(256),
+            nn.ELU(),
+            nn.Dropout(0.15)
+        )
+        self.res1 = ResidualBlock(256)
+        self.shared_mid = nn.Sequential(
+            nn.Linear(256, 128),
             nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.Dropout(0.2),
+            nn.ELU(),
+            nn.Dropout(0.15)
+        )
+        self.res2 = ResidualBlock(128)
+        self.shared_out = nn.Sequential(
             nn.Linear(128, 64),
             nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Dropout(0.2)
+            nn.ELU()
         )
+        
         # Task 1: Quality Score Regressor
         self.regressor = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ELU(),
             nn.Linear(32, 1)
         )
         # Task 2: Reject Classification
         self.classifier = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ELU(),
             nn.Linear(32, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        shared_out = self.shared(x)
+        h = self.shared_input(x)
+        h = self.res1(h)
+        h = self.shared_mid(h)
+        h = self.res2(h)
+        shared_out = self.shared_out(h)
         score = self.regressor(shared_out)
         prob = self.classifier(shared_out)
         return score, prob
@@ -178,13 +181,13 @@ model = CastingMultitaskDNN(input_dim=len(feats))
 # Loss Functions & Optimizer
 criterion_mse = nn.MSELoss()
 criterion_bce = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+optimizer = optim.AdamW(model.parameters(), lr=0.003, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2)
 
 # ── 4. TRAINING DEEP LEARNING MODEL ──
-print("\n[3/4] Training PyTorch Multi-Task DNN model...")
+print("\n[3/4] Training PyTorch Multi-Task Residual DNN model...")
 
-epochs = 15
+epochs = 30
 train_losses = []
 val_scores_mae = []
 val_reject_acc = []
@@ -210,7 +213,7 @@ for epoch in range(1, epochs + 1):
         loss_mse = criterion_mse(pred_scores, targets_score)
         loss_bce = criterion_bce(pred_rejects, targets_reject)
         
-        # Total combined loss (scale MSE down so they contribute evenly)
+        # Total combined loss
         loss = (0.04 * loss_mse) + loss_bce
         
         # Backward pass

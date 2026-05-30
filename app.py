@@ -189,6 +189,52 @@ div.stButton > button:first-child:active {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(56, 189, 248, 0.3);
 }
+
+/* Mobile Responsive CSS Overrides */
+@media (max-width: 768px) {
+    /* Shrunk Metrics layout */
+    [data-testid="stMetric"] {
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
+        margin-bottom: 12px !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.4rem !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Module Cards layout */
+    .module-card {
+        padding: 16px !important;
+        margin-bottom: 12px !important;
+    }
+    .module-card h3 {
+        font-size: 1.1rem !important;
+    }
+    .module-card p {
+        font-size: 0.8rem !important;
+        margin-top: 6px !important;
+    }
+    
+    /* Touch buttons layout */
+    div.stButton > button:first-child {
+        width: 100% !important;
+        padding: 12px 20px !important;
+    }
+    
+    /* Typography scaling */
+    h1 {
+        font-size: 1.8rem !important;
+    }
+    h2 {
+        font-size: 1.5rem !important;
+    }
+    h3 {
+        font-size: 1.2rem !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -231,33 +277,69 @@ def load_kb():
 import torch
 import torch.nn as nn
 
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.fc1 = nn.Linear(dim, dim)
+        self.bn1 = nn.BatchNorm1d(dim)
+        self.elu = nn.ELU()
+        self.fc2 = nn.Linear(dim, dim)
+        self.bn2 = nn.BatchNorm1d(dim)
+        
+    def forward(self, x):
+        residual = x
+        out = self.fc1(x)
+        out = self.bn1(out)
+        out = self.elu(out)
+        out = self.fc2(out)
+        out = self.bn2(out)
+        out += residual  # skip connection!
+        return self.elu(out)
+
 class CastingMultitaskDNN(nn.Module):
     def __init__(self, input_dim):
         super(CastingMultitaskDNN, self).__init__()
-        self.shared = nn.Sequential(
-            nn.Linear(input_dim, 128),
+        # Shared representations
+        self.shared_input = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.BatchNorm1d(256),
+            nn.ELU(),
+            nn.Dropout(0.15)
+        )
+        self.res1 = ResidualBlock(256)
+        self.shared_mid = nn.Sequential(
+            nn.Linear(256, 128),
             nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.Dropout(0.2),
+            nn.ELU(),
+            nn.Dropout(0.15)
+        )
+        self.res2 = ResidualBlock(128)
+        self.shared_out = nn.Sequential(
             nn.Linear(128, 64),
             nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Dropout(0.2)
+            nn.ELU()
         )
+        
+        # Task 1: Quality Score Regressor
         self.regressor = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ELU(),
             nn.Linear(32, 1)
         )
+        # Task 2: Reject Classification
         self.classifier = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ELU(),
             nn.Linear(32, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        shared_out = self.shared(x)
+        h = self.shared_input(x)
+        h = self.res1(h)
+        h = self.shared_mid(h)
+        h = self.res2(h)
+        shared_out = self.shared_out(h)
         score = self.regressor(shared_out)
         prob = self.classifier(shared_out)
         return score, prob
@@ -268,7 +350,7 @@ def load_pytorch_dnn():
     scaler_path = MODEL_DIR / 'dnn_scaler.pkl'
     if weights_path.exists() and scaler_path.exists():
         scaler = joblib.load(scaler_path)
-        model = CastingMultitaskDNN(input_dim=7)
+        model = CastingMultitaskDNN(input_dim=18)
         model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
         model.eval()
         return model, scaler
@@ -959,22 +1041,27 @@ elif page == "🔮 Casting Quality Predictor":
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("⚙️ Casting Parameters")
-            temp    = st.slider("🌡️ Pour Temperature ( deg C)", 1350, 1520, 1425)
-            rpm     = st.slider("🔄 Spin Speed (RPM)",      700,  1600, 1100)
-            carbon  = st.slider("⚗️ Carbon %",             3.0,  4.0,  3.5,  0.01)
-            silicon = st.slider("⚗️ Silicon %",            1.5,  3.0,  2.25, 0.01)
-            cooling = st.slider("❄️ Cooling Time (sec)",   25,   130,  75)
-            flow    = st.slider("💧 Metal Flow Rate",       0.5,  2.5,  1.5,  0.1)
-            mold    = st.selectbox("🔲 Mold Type", ['Permanent', 'Sand', 'Die'])
+            temp = st.slider("🌡️ Pour Temperature (°C)", 1340, 1520, 1425)
+            rpm = st.slider("🔄 Spin Speed (RPM)", 600, 1500, 1100)
+            carbon = st.slider("⚗️ Carbon %", 3.0, 4.0, 3.5, 0.01)
+            silicon = st.slider("⚗️ Silicon %", 1.5, 3.0, 2.25, 0.01)
+            manganese = st.slider("⚗️ Manganese %", 0.1, 0.6, 0.3, 0.01)
+            phosphorus = st.slider("⚗️ Phosphorus %", 0.01, 0.08, 0.03, 0.001)
+            mg_added = st.slider("⚗️ Magnesium Added %", 0.02, 0.08, 0.05, 0.001)
+            treat_time = st.slider("⏱️ Treatment Duration (min)", 1.0, 15.0, 6.0, 0.5)
+            mold_diam = st.slider("📏 Mold Diameter (m)", 0.1, 1.0, 0.3, 0.01)
+            preheat = st.slider("🔥 Mold Preheat Temperature (°C)", 50, 400, 200, 10)
+            thickness = st.slider("📐 Wall Thickness (mm)", 5, 100, 25, 1)
+            mold = st.selectbox("🔲 Mold Type", ['Permanent', 'Sand', 'Die'])
             st.markdown("---")
-            st.markdown("**[AI] Prediction AI Architecture**")
+            st.markdown("**Prediction AI Architecture**")
             model_choice = st.selectbox("AI Model Architecture", ["Gradient Boosting (Traditional ML)", "PyTorch Multitask DNN (Deep Learning)"])
-            predict = st.button("[RUN] Predict Quality", use_container_width=True, type="primary")
+            predict = st.button("🔮 Predict Quality", use_container_width=True, type="primary")
 
         with col2:
             if predict:
                 if model_choice == "Gradient Boosting (Traditional ML)":
-                    X  = np.array([[temp, rpm, carbon, silicon, cooling, flow, le.transform([mold])[0]]])
+                    X  = np.array([[temp, rpm, carbon, silicon, thickness, 1.5, le.transform([mold])[0]]])
                     Xs = scaler.transform(X)
                     score   = float(reg.predict(Xs)[0])
                     rej_p   = float(clf.predict_proba(Xs)[0][1]) * 100
@@ -984,7 +1071,28 @@ elif page == "🔮 Casting Quality Predictor":
                     dnn_model, dnn_scaler = load_pytorch_dnn()
                     if dnn_model is not None:
                         mold_map = {'Permanent': 0, 'Sand': 1, 'Die': 2}
-                        X = np.array([[temp, rpm, carbon, silicon, cooling, flow, mold_map[mold]]])
+                        mold_enc_val = mold_map[mold]
+                        
+                        # 6 physics-derived calculations (the secret sauce!)
+                        ce = carbon + (silicon + phosphorus) / 3.0
+                        liquidus = 1669.0 - 124.0 * ce
+                        superheat = temp - liquidus
+                        g_fact = 0.00001118 * (rpm**2) * (mold_diam / 2.0)
+                        mg_eff = mg_added * np.exp(-0.05 * treat_time)
+                        nodularity = 98.0 * (1.0 - np.exp(-42.0 * mg_eff)) - (phosphorus * 80.0)
+                        nodularity = np.clip(nodularity, 0.0, 100.0)
+                        mold_k = {'Permanent': 16.0, 'Sand': 3.0, 'Die': 11.0}[mold]
+                        cooling_rate = (mold_k * (temp - preheat)) / (thickness**2 * 8.0)
+                        
+                        # Stack all 18 features in FEATS order
+                        X = np.array([[
+                            carbon, silicon, manganese, phosphorus,
+                            mg_added, treat_time, rpm, mold_diam,
+                            temp, preheat, thickness, mold_enc_val,
+                            ce, superheat, g_fact,
+                            mg_eff, nodularity, cooling_rate
+                        ]])
+                        
                         Xs = dnn_scaler.transform(X)
                         X_tensor = torch.tensor(Xs, dtype=torch.float32)
                         with torch.no_grad():
