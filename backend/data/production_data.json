@@ -1,0 +1,13 @@
+{
+  "total_tonnes_monthly": 184.5,
+  "melt_efficiency_kwh_per_tonne": 612.0,
+  "scrap_rate_pct": 3.8,
+  "daily_outputs_tonnes": [5.2, 6.1, 4.8, 5.9, 6.4, 7.1, 5.5],
+  "daily_targets_tonnes": [5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5],
+  "recent_heats": [
+    {"heat_id": "H-2401", "grade": "IS 500/7", "pour_temp": 1425, "weight_kg": 1800, "status": "Passed"},
+    {"heat_id": "H-2402", "grade": "IS 400/15", "pour_temp": 1390, "weight_kg": 2100, "status": "Passed"},
+    {"heat_id": "H-2403", "grade": "IS 600/3", "pour_temp": 1450, "weight_kg": 1600, "status": "Passed"},
+    {"heat_id": "H-2404", "grade": "IS 800/2", "pour_temp": 1475, "weight_kg": 1500, "status": "Slag Defect"}
+  ]
+}

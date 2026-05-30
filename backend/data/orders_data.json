@@ -1,0 +1,6 @@
+[
+  {"order_id": "ORD-101", "customer": "Larsen & Toubro", "grade": "IS 500/7", "qty_kg": 5000, "due_date": "2026-06-15", "stage": "Machining", "status": "In Progress"},
+  {"order_id": "ORD-102", "customer": "BHEL", "grade": "IS 400/15", "qty_kg": 12000, "due_date": "2026-06-25", "stage": "Melt", "status": "Scheduled"},
+  {"order_id": "ORD-103", "customer": "Tata Power", "grade": "IS 600/3", "qty_kg": 8000, "due_date": "2026-06-10", "stage": "Heat Treat", "status": "In Progress"},
+  {"order_id": "ORD-104", "customer": "HAL Aerospace", "grade": "IS 800/2", "qty_kg": 2500, "due_date": "2026-06-05", "stage": "QC", "status": "In Progress"}
+]

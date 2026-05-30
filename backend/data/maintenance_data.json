@@ -1,0 +1,26 @@
+[
+  {
+    "machine_name": "Centrifugal Mold Spinner",
+    "bearing_temp_c": 68.5,
+    "vibration_mms": 2.8,
+    "spindle_runout_mm": 0.02,
+    "rul_days": 18.5,
+    "status": "Optimal"
+  },
+  {
+    "machine_name": "Ladle Tilt Actuator",
+    "bearing_temp_c": 42.1,
+    "vibration_mms": 1.2,
+    "spindle_runout_mm": 0.01,
+    "rul_days": 45.0,
+    "status": "Optimal"
+  },
+  {
+    "machine_name": "Coolant Flow Pump",
+    "bearing_temp_c": 89.2,
+    "vibration_mms": 6.8,
+    "spindle_runout_mm": 0.08,
+    "rul_days": 4.2,
+    "status": "Warning"
+  }
+]
