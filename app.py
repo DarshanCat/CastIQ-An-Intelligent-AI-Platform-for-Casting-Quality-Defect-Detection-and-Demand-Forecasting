@@ -50,9 +50,18 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
+/* Dynamic Mesh Gradient Animated Background */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 html, body, [data-testid="stAppViewContainer"], .main {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #0f172a;
+    background: linear-gradient(-45deg, #090d16, #0f172a, #1e1b4b, #0f172a) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 20s ease infinite !important;
     color: #e2e8f0;
 }
 
@@ -60,11 +69,30 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif !important;
     font-weight: 600;
     color: #f8fafc !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-testid="stSidebar"] {
-    background-image: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-image: linear-gradient(180deg, #0f172a 0%, #090d16 100%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Glassmorphic Metrics Cards with Neon Accent Indicators */
+[data-testid="stMetric"] {
+    background: rgba(30, 41, 59, 0.35) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-bottom: 3px solid #0284c7 !important;
+}
+[data-testid="stMetric"]:hover {
+    transform: translateY(-4px) !important;
+    border-bottom-color: #38bdf8 !important;
+    box-shadow: 0 12px 40px 0 rgba(2, 132, 199, 0.2) !important;
 }
 
 [data-testid="stMetricValue"] {
@@ -80,23 +108,25 @@ h1, h2, h3, h4, h5, h6 {
     color: #94a3b8 !important;
 }
 
+/* Premium Module Cards */
 .module-card {
-    background: rgba(30, 41, 59, 0.45) !important;
+    background: rgba(30, 41, 59, 0.35) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border-radius: 16px !important;
     padding: 24px !important;
     margin-bottom: 16px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .module-card:hover {
-    transform: translateY(-4px) !important;
-    border-color: rgba(56, 189, 248, 0.4) !important;
-    box-shadow: 0 12px 40px 0 rgba(56, 189, 248, 0.15) !important;
+    transform: translateY(-6px) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 16px 48px 0 rgba(56, 189, 248, 0.15) !important;
 }
 
+/* High-tech Button Styling */
 div.stButton > button:first-child {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
     color: white !important;
@@ -105,31 +135,63 @@ div.stButton > button:first-child {
     border: none !important;
     padding: 10px 24px !important;
     border-radius: 8px !important;
-    transition: all 0.2s ease-in-out !important;
+    transition: all 0.25s ease-in-out !important;
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
 }
 div.stButton > button:first-child:hover {
     background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
-    transform: scale(1.02) !important;
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45) !important;
+}
+div.stButton > button:first-child:active {
+    transform: translateY(0px) !important;
 }
 
+/* Futuristic Inputs */
 [data-testid="stFileUploader"] {
-    background: rgba(30, 41, 59, 0.3) !important;
-    border: 2px dashed rgba(255, 255, 255, 0.1) !important;
+    background: rgba(30, 41, 59, 0.2) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
     padding: 16px !important;
 }
+.stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #f1f5f9 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+.stTextInput input:focus, .stTextArea textarea:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.3);
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 BASE      = Path(__file__).parent
 MODEL_DIR = BASE / 'backend' / 'models'
 DATA_DIR  = BASE / 'backend' / 'data'
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # LOADERS
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 @st.cache_resource
 def load_casting():
     return (joblib.load(MODEL_DIR/'classifier.pkl'),
@@ -319,9 +381,9 @@ def load_local_gpt():
     return None, None
 
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # HELPERS
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 def quality_gauge(score):
     color = "#22c55e" if score >= 75 else "#f59e0b" if score >= 60 else "#ef4444"
     fig = go.Figure(go.Indicator(
@@ -344,20 +406,20 @@ def quality_gauge(score):
 
 def cast_recommendations(temp, rpm, carbon, silicon, cooling, flow, mold):
     tips = []
-    if temp < 1400:    tips.append("🌡️ Increase pour temperature above 1400°C")
-    if temp > 1450:    tips.append("🌡️ Reduce pour temperature below 1450°C")
-    if rpm  < 1000:    tips.append("⚙️  Increase spin speed above 1000 RPM")
-    if rpm  > 1200:    tips.append("⚙️  Reduce spin speed below 1200 RPM")
-    if carbon < 3.4:   tips.append("⚗️  Increase Carbon % to 3.4–3.6 range")
-    if carbon > 3.6:   tips.append("⚗️  Reduce Carbon % to 3.4–3.6 range")
-    if silicon < 2.0:  tips.append("⚗️  Increase Silicon % to 2.0–2.5 range")
-    if silicon > 2.5:  tips.append("⚗️  Reduce Silicon % to 2.0–2.5 range")
+    if temp < 1400:    tips.append("🌡️ Increase pour temperature above 1400 deg C")
+    if temp > 1450:    tips.append("🌡️ Reduce pour temperature below 1450 deg C")
+    if rpm  < 1000:    tips.append("[SETUP]  Increase spin speed above 1000 RPM")
+    if rpm  > 1200:    tips.append("[SETUP]  Reduce spin speed below 1200 RPM")
+    if carbon < 3.4:   tips.append("[Alloy]  Increase Carbon % to 3.4-3.6 range")
+    if carbon > 3.6:   tips.append("[Alloy]  Reduce Carbon % to 3.4-3.6 range")
+    if silicon < 2.0:  tips.append("[Alloy]  Increase Silicon % to 2.0-2.5 range")
+    if silicon > 2.5:  tips.append("[Alloy]  Reduce Silicon % to 2.0-2.5 range")
     if cooling < 60:   tips.append("❄️  Increase cooling time above 60 sec")
     if cooling > 90:   tips.append("❄️  Reduce cooling time below 90 sec")
-    if flow < 1.2:     tips.append("💧 Increase metal flow rate to 1.2–1.8")
-    if flow > 1.8:     tips.append("💧 Reduce metal flow rate to 1.2–1.8")
+    if flow < 1.2:     tips.append("💧 Increase metal flow rate to 1.2-1.8")
+    if flow > 1.8:     tips.append("💧 Reduce metal flow rate to 1.2-1.8")
     if mold == 'Sand': tips.append("🔲 Consider switching to Permanent mold")
-    return tips or ["✅ All parameters within optimal range!"]
+    return tips or ["[OK] All parameters within optimal range!"]
 
 SECTOR_COLORS = {
     'Hydraulics': '#3b82f6', 'Wind Energy': '#22c55e',
@@ -395,9 +457,9 @@ def parse_rfq(text):
     result['diameter']    = f"{m.group(1)} mm" if m else 'Not specified'
     return result
 
-# ══════════════════════════════════════════════════════════════
-# UPGRADE 1 — GEMINI API SMART ASSISTANT
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# UPGRADE 1 - GEMINI API SMART ASSISTANT
+# ==============================================================
 def build_system_prompt(kb):
     kb_text = "\n\n".join(
         f"TOPIC: {', '.join(e['keywords'])}\n{e['answer']}" for e in kb
@@ -419,7 +481,7 @@ Company: Vijay Spheroidals Pvt Ltd | ISO 9001:2015 | www.vijayspheroidals.in | P
 def ask_gemini(messages, kb):
     api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
     if not api_key:
-        return "⚠️ Gemini API key not set. Please set the GEMINI_API_KEY environment variable or enter it in the sidebar."
+        return "[WARNING] Gemini API key not set. Please set the GEMINI_API_KEY environment variable or enter it in the sidebar."
     
     import requests
     
@@ -461,11 +523,11 @@ def ask_gemini(messages, kb):
             err_msg = response.json().get("error", {}).get("message", str(e))
         except Exception:
             err_msg = str(e)
-        return f"⚠️ Gemini API Request failed: {err_msg}"
+        return f"[WARNING] Gemini API Request failed: {err_msg}"
 
-# ══════════════════════════════════════════════════════════════
-# UPGRADE 2 — BATCH QUALITY PREDICTION HELPER
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# UPGRADE 2 - BATCH QUALITY PREDICTION HELPER
+# ==============================================================
 def run_batch_prediction(df_in, clf, reg, scaler, le):
     required = ['pour_temp','spin_rpm','carbon_pct','silicon_pct',
                 'cooling_sec','flow_rate','mold_type']
@@ -485,13 +547,13 @@ def run_batch_prediction(df_in, clf, reg, scaler, le):
     df['quality_score']      = reg.predict(Xs).round(1)
     df['reject_probability'] = (clf.predict_proba(Xs)[:,1] * 100).round(1)
     df['verdict']            = clf.predict(Xs)
-    df['verdict']            = df['verdict'].map({0: '🟢 GOOD', 1: '🔴 REJECT'})
+    df['verdict']            = df['verdict'].map({0: '[ACTIVE] GOOD', 1: '[ERROR] REJECT'})
     df.drop(columns=['mold_enc'], inplace=True)
     return df, None
 
-# ══════════════════════════════════════════════════════════════
-# UPGRADE 3 — PDF REPORT GENERATOR
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
+# UPGRADE 3 - PDF REPORT GENERATOR
+# ==============================================================
 def generate_pdf_report(params: dict, score: float, rej_p: float,
                          verdict: str, tips: list) -> bytes:
     buf = io.BytesIO()
@@ -516,14 +578,14 @@ def generate_pdf_report(params: dict, score: float, rej_p: float,
                                     leftIndent=10,
                                     textColor=colors.HexColor('#374151'))
 
-    verdict_color = colors.HexColor('#16a34a') if '🟢' in verdict else colors.HexColor('#dc2626')
+    verdict_color = colors.HexColor('#16a34a') if '[ACTIVE]' in verdict else colors.HexColor('#dc2626')
     score_color   = colors.HexColor('#16a34a') if score >= 75 else \
                     colors.HexColor('#d97706') if score >= 60 else colors.HexColor('#dc2626')
 
     story = []
 
     # Header
-    story.append(Paragraph("🏭 VSPL AI — Casting Quality Report", title_style))
+    story.append(Paragraph("🏭 VSPL AI - Casting Quality Report", title_style))
     story.append(Paragraph(
         f"Vijay Spheroidals Pvt Ltd &nbsp;|&nbsp; ISO 9001:2015 &nbsp;|&nbsp; "
         f"Generated: {datetime.now().strftime('%d %b %Y, %H:%M')}",
@@ -561,13 +623,13 @@ def generate_pdf_report(params: dict, score: float, rej_p: float,
     story.append(Paragraph("Casting Parameters", heading_style))
     param_data = [
         ["Parameter", "Value", "Optimal Range", "Status"],
-        ["Pour Temperature",  f"{params['temp']} °C",   "1400–1450 °C",  "✅" if 1400<=params['temp']<=1450 else "⚠️"],
-        ["Spin Speed (RPM)",  f"{params['rpm']}",       "1000–1200 RPM", "✅" if 1000<=params['rpm']<=1200 else "⚠️"],
-        ["Carbon %",          f"{params['carbon']:.2f}","3.4–3.6 %",     "✅" if 3.4<=params['carbon']<=3.6 else "⚠️"],
-        ["Silicon %",         f"{params['silicon']:.2f}","2.0–2.5 %",    "✅" if 2.0<=params['silicon']<=2.5 else "⚠️"],
-        ["Cooling Time",      f"{params['cooling']} s", "60–90 sec",     "✅" if 60<=params['cooling']<=90 else "⚠️"],
-        ["Metal Flow Rate",   f"{params['flow']:.1f}",  "1.2–1.8",       "✅" if 1.2<=params['flow']<=1.8 else "⚠️"],
-        ["Mold Type",         params['mold'],           "Permanent/Die", "✅" if params['mold'] != 'Sand' else "⚠️"],
+        ["Pour Temperature",  f"{params['temp']}  deg C",   "1400-1450  deg C",  "[OK]" if 1400<=params['temp']<=1450 else "[WARNING]"],
+        ["Spin Speed (RPM)",  f"{params['rpm']}",       "1000-1200 RPM", "[OK]" if 1000<=params['rpm']<=1200 else "[WARNING]"],
+        ["Carbon %",          f"{params['carbon']:.2f}","3.4-3.6 %",     "[OK]" if 3.4<=params['carbon']<=3.6 else "[WARNING]"],
+        ["Silicon %",         f"{params['silicon']:.2f}","2.0-2.5 %",    "[OK]" if 2.0<=params['silicon']<=2.5 else "[WARNING]"],
+        ["Cooling Time",      f"{params['cooling']} s", "60-90 sec",     "[OK]" if 60<=params['cooling']<=90 else "[WARNING]"],
+        ["Metal Flow Rate",   f"{params['flow']:.1f}",  "1.2-1.8",       "[OK]" if 1.2<=params['flow']<=1.8 else "[WARNING]"],
+        ["Mold Type",         params['mold'],           "Permanent/Die", "[OK]" if params['mold'] != 'Sand' else "[WARNING]"],
     ]
     p_table = Table(param_data, colWidths=['35%','20%','30%','15%'])
     p_table.setStyle(TableStyle([
@@ -647,8 +709,8 @@ def generate_quote_pdf(parsed: dict, top_grade: str, ppkg: float, qty_kg: float,
         ["Recommended Alloy Grade", f"<b>{top_grade}</b>"],
         ["Extracted Application", parsed.get('application', 'General Purpose')],
         ["Requested Quantity", parsed.get('quantity', 'Not specified')],
-        ["Unit Rate (ex-works)", f"₹{ppkg:.2f} / kg"],
-        ["Estimated Total Value", f"<b>₹{total:,.2f}</b>"],
+        ["Unit Rate (ex-works)", f"Rs.{ppkg:.2f} / kg"],
+        ["Estimated Total Value", f"<b>Rs.{total:,.2f}</b>"],
         ["Lead Time", f"{lead} working days"],
         ["Requested Delivery Date", parsed.get('delivery', 'Standard lead time')],
     ]
@@ -694,34 +756,100 @@ def generate_quote_pdf(parsed: dict, top_grade: str, ppkg: float, qty_kg: float,
     buf.seek(0)
     return buf.read()
 
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 # SIDEBAR
-# ══════════════════════════════════════════════════════════════
+# ==============================================================
 st.sidebar.title("🏭 VSPL AI Platform")
 st.sidebar.caption("Vijay Spheroidals Pvt Ltd")
+
+# Premium interactive crystal lattice particle network (HTML5 Canvas + JS)
+import streamlit.components.v1 as components
+components.html("""
+<canvas id="canvas" style="width: 100%; height: 110px; background: transparent; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.04);"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const resize = () => {
+    canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+};
+resize();
+
+let particles = [];
+const width = canvas.width / window.devicePixelRatio;
+const height = canvas.height / window.devicePixelRatio;
+
+for (let i = 0; i < 30; i++) {
+    particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.7,
+        vy: (Math.random() - 0.5) * 0.7,
+        radius: Math.random() * 2 + 1
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    ctx.clearRect(0, 0, width, height);
+    
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            let dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+            if (dist < 40) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
+        }
+    }
+    
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+    particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+animate();
+</script>
+<style>
+body { margin: 0; padding: 0; overflow: hidden; }
+</style>
+""", height=110)
+
 st.sidebar.markdown("---")
 
 page = st.sidebar.radio("Navigation", [
-    "🏠 Dashboard",
-    "🔮 Casting Quality Predictor",
-    "📊 Demand Forecasting",
-    "⚗️ Alloy Recommendation",
-    "📄 RFQ Intelligence",
-    "🤖 Smart Assistant",
-    "📷 CV Defect Detector",
-    "🎥 Live IoT Telemetry",
-    "🧠 Deep Learning Hub",
+    "[Dashboard] Dashboard",
+    "[PREDICT] Casting Quality Predictor",
+    "[Forecast] Demand Forecasting",
+    "[Alloy] Alloy Recommendation",
+    "[RFQ] RFQ Intelligence",
+    "[Assistant] Smart Assistant",
+    "[CV] CV Defect Detector",
+    "[IoT] Live IoT Telemetry",
+    "[AI] Deep Learning Hub",
 ], label_visibility="collapsed")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Module Status**")
 for label, status in [
-    ("🔮 Module 1", "✅ Live"), ("📊 Module 2", "✅ Live"),
-    ("⚗️ Module 3", "✅ Live"), ("📄 Module 4", "✅ Live"),
-    ("🤖 Module 5", "✅ Gemini API"),
-    ("📷 Module 6", "✅ CNN Live"),
-    ("🎥 Module 7", "✅ Streaming"),
-    ("🧠 Module 8", "✅ PyTorch DNN/GPT"),
+    ("[PREDICT] Module 1", "[OK] Live"), ("[Forecast] Module 2", "[OK] Live"),
+    ("[Alloy] Module 3", "[OK] Live"), ("[RFQ] Module 4", "[OK] Live"),
+    ("[Assistant] Module 5", "[OK] Gemini API"),
+    ("[CV] Module 6", "[OK] CNN Live"),
+    ("[IoT] Module 7", "[OK] Streaming"),
+    ("[AI] Module 8", "[OK] PyTorch DNN/GPT"),
 ]:
     st.sidebar.markdown(f"{label} &nbsp; {status}")
 
@@ -729,7 +857,7 @@ for label, status in [
 env_key = os.environ.get("GEMINI_API_KEY", "")
 if not env_key:
     st.sidebar.markdown("---")
-    st.sidebar.markdown("**🔑 API Key Setup**")
+    st.sidebar.markdown("**[KEY] API Key Setup**")
     user_key = st.sidebar.text_input("Enter GEMINI_API_KEY:", type="password", help="Paste your Gemini API key here. It will only be stored in your current session.")
     if user_key:
         st.session_state["GEMINI_API_KEY"] = user_key
@@ -737,10 +865,10 @@ if not env_key:
 st.sidebar.markdown("---")
 st.sidebar.caption("Built by Darshan · CMR University · B.Tech AI & ML")
 
-# ══════════════════════════════════════════════════════════════
-# PAGE 0 — DASHBOARD
-# ══════════════════════════════════════════════════════════════
-if page == "🏠 Dashboard":
+# ==============================================================
+# PAGE 0 - DASHBOARD
+# ==============================================================
+if page == "[Dashboard] Dashboard":
     st.title("🏭 VSPL AI Intelligence Platform")
     st.markdown("##### AI-powered manufacturing intelligence for Vijay Spheroidals Pvt Ltd")
     st.markdown("---")
@@ -753,24 +881,24 @@ if page == "🏠 Dashboard":
     c5.metric("Recommender Acc.",  "94.5%")
 
     st.markdown("---")
-    st.subheader("🚀 Platform Modules")
+    st.subheader("[RUN] Platform Modules")
 
     modules = [
-        ("🔮", "Casting Quality Predictor",
+        ("[PREDICT]", "Casting Quality Predictor",
          "Predicts reject probability & quality score before every pour. Input 7 parameters → instant AI verdict + downloadable PDF report."),
-        ("📊", "Demand Forecasting",
+        ("[Forecast]", "Demand Forecasting",
          "6-month order forecasting across 5 sectors with confidence intervals, historical trends, and sector comparison charts."),
-        ("⚗️", "Alloy Recommendation Engine",
+        ("[Alloy]", "Alloy Recommendation Engine",
          "Provide application specs → AI recommends optimal ductile iron grade with full composition and confidence scores."),
-        ("📄", "RFQ Intelligence",
+        ("[RFQ]", "RFQ Intelligence",
          "Paste any RFQ text → AI extracts specs, recommends grade, and generates a formatted downloadable quotation instantly."),
-        ("🤖", "Smart Assistant (Gemini AI)",
+        ("[Assistant]", "Smart Assistant (Gemini AI)",
          "Powered by Google Gemini API. Answers any VSPL question intelligently using the full knowledge base as context."),
-        ("📷", "CV Defect Detector",
+        ("[CV]", "CV Defect Detector",
          "Uses custom CNN / YOLOv8 computer vision models to identify surface casting defects (cracks, blowholes, shrinkage) in real-time."),
-        ("🎥", "Live IoT Telemetry",
+        ("[IoT]", "Live IoT Telemetry",
          "Real-time digital twin sensor streaming dashboard. Moniters centrifugal spin RPM, mold temperature, ladle tilt angle, and coolant flow rate."),
-        ("🧠", "Deep Learning & LLM Hub",
+        ("[AI]", "Deep Learning & LLM Hub",
          "Workspace for engineers to download the 50,000-row casting runs CSV, train a custom PyTorch Multi-Task DNN online, and train/run a local GPT LLM."),
     ]
     cols = st.columns(2)
@@ -790,14 +918,14 @@ if page == "🏠 Dashboard":
     t3.info("**AI & Real-Time Data**\nGoogle Gemini API (gemini-2.5-flash)\nLive IoT Telemetry Streaming")
     t4.info("**Reports**\nReportLab PDF Reports\nCSV Batch Exports")
 
-# ══════════════════════════════════════════════════════════════
-# MODULE 1 — CASTING QUALITY PREDICTOR (+ Batch + PDF)
-# ══════════════════════════════════════════════════════════════
-elif page == "🔮 Casting Quality Predictor":
+# ==============================================================
+# MODULE 1 - CASTING QUALITY PREDICTOR (+ Batch + PDF)
+# ==============================================================
+elif page == "[PREDICT] Casting Quality Predictor":
     clf, reg, scaler, le = load_casting()
 
-    st.title("🔮 Casting Quality Predictor")
-    st.markdown("##### Predict quality **before** the pour — prevent rejects proactively")
+    st.title("[PREDICT] Casting Quality Predictor")
+    st.markdown("##### Predict quality **before** the pour - prevent rejects proactively")
     st.markdown("---")
 
     mode = st.radio("Mode", ["Single Prediction", "Batch Upload"], horizontal=True)
@@ -807,18 +935,18 @@ elif page == "🔮 Casting Quality Predictor":
     if mode == "Single Prediction":
         col1, col2 = st.columns(2)
         with col1:
-            st.subheader("⚙️ Casting Parameters")
-            temp    = st.slider("🌡️ Pour Temperature (°C)", 1350, 1520, 1425)
+            st.subheader("[SETUP] Casting Parameters")
+            temp    = st.slider("🌡️ Pour Temperature ( deg C)", 1350, 1520, 1425)
             rpm     = st.slider("🔄 Spin Speed (RPM)",      700,  1600, 1100)
-            carbon  = st.slider("⚗️ Carbon %",             3.0,  4.0,  3.5,  0.01)
-            silicon = st.slider("⚗️ Silicon %",            1.5,  3.0,  2.25, 0.01)
+            carbon  = st.slider("[Alloy] Carbon %",             3.0,  4.0,  3.5,  0.01)
+            silicon = st.slider("[Alloy] Silicon %",            1.5,  3.0,  2.25, 0.01)
             cooling = st.slider("❄️ Cooling Time (sec)",   25,   130,  75)
             flow    = st.slider("💧 Metal Flow Rate",       0.5,  2.5,  1.5,  0.1)
             mold    = st.selectbox("🔲 Mold Type", ['Permanent', 'Sand', 'Die'])
             st.markdown("---")
-            st.markdown("**🧠 Prediction AI Architecture**")
+            st.markdown("**[AI] Prediction AI Architecture**")
             model_choice = st.selectbox("AI Model Architecture", ["Gradient Boosting (Traditional ML)", "PyTorch Multitask DNN (Deep Learning)"])
-            predict = st.button("🚀 Predict Quality", use_container_width=True, type="primary")
+            predict = st.button("[RUN] Predict Quality", use_container_width=True, type="primary")
 
         with col2:
             if predict:
@@ -827,7 +955,7 @@ elif page == "🔮 Casting Quality Predictor":
                     Xs = scaler.transform(X)
                     score   = float(reg.predict(Xs)[0])
                     rej_p   = float(clf.predict_proba(Xs)[0][1]) * 100
-                    verdict = "🟢 GOOD CAST" if clf.predict(Xs)[0] == 0 else "🔴 LIKELY REJECT"
+                    verdict = "[ACTIVE] GOOD CAST" if clf.predict(Xs)[0] == 0 else "[ERROR] LIKELY REJECT"
                 else:
                     # PyTorch DNN path
                     dnn_model, dnn_scaler = load_pytorch_dnn()
@@ -840,14 +968,14 @@ elif page == "🔮 Casting Quality Predictor":
                             pred_score, pred_prob = dnn_model(X_tensor)
                         score = float(pred_score[0][0].item())
                         rej_p = float(pred_prob[0][0].item()) * 100
-                        verdict = "🟢 GOOD CAST" if rej_p < 50.0 else "🔴 LIKELY REJECT"
+                        verdict = "[ACTIVE] GOOD CAST" if rej_p < 50.0 else "[ERROR] LIKELY REJECT"
                     else:
                         st.error("PyTorch model files not found. Please ensure the training pipeline is complete.")
                         st.stop()
 
                 tips    = cast_recommendations(temp, rpm, carbon, silicon, cooling, flow, mold)
 
-                tab1, tab2 = st.tabs(["📊 QA Prediction & Metrics", "🧊 3D Solidification Viewer"])
+                tab1, tab2 = st.tabs(["[Forecast] QA Prediction & Metrics", "🧊 3D Solidification Viewer"])
 
                 with tab1:
                     st.plotly_chart(quality_gauge(score), use_container_width=True)
@@ -865,7 +993,7 @@ elif page == "🔮 Casting Quality Predictor":
                                   cooling=cooling, flow=flow, mold=mold)
                     pdf_bytes = generate_pdf_report(params, score, rej_p, verdict, tips)
                     st.download_button(
-                        label="📄 Download PDF Report",
+                        label="[RFQ] Download PDF Report",
                         data=pdf_bytes,
                         file_name=f"VSPL_Quality_Report_{datetime.today().strftime('%Y%m%d_%H%M')}.pdf",
                         mime="application/pdf",
@@ -892,14 +1020,14 @@ elif page == "🔮 Casting Quality Predictor":
                     fig_3d = go.Figure(data=[go.Surface(
                         x=R, y=T_mesh, z=Temp_grid,
                         colorscale='Hot',
-                        colorbar=dict(title='Temp (°C)', titleside='right', len=0.8)
+                        colorbar=dict(title='Temp ( deg C)', titleside='right', len=0.8)
                     )])
                     
                     fig_3d.update_layout(
                         scene=dict(
                             xaxis=dict(title='Radius (mm)', gridcolor='rgba(255,255,255,0.1)'),
                             yaxis=dict(title='Time (s)', gridcolor='rgba(255,255,255,0.1)'),
-                            zaxis=dict(title='Temp (°C)', gridcolor='rgba(255,255,255,0.1)'),
+                            zaxis=dict(title='Temp ( deg C)', gridcolor='rgba(255,255,255,0.1)'),
                             camera=dict(eye=dict(x=1.6, y=1.6, z=1.2))
                         ),
                         paper_bgcolor='rgba(0,0,0,0)',
@@ -909,27 +1037,27 @@ elif page == "🔮 Casting Quality Predictor":
                     )
                     st.plotly_chart(fig_3d, use_container_width=True)
             else:
-                st.markdown("### 👈 Set parameters & click **Predict Quality**")
+                st.markdown("### <- Set parameters & click **Predict Quality**")
                 st.markdown("""
 | Parameter | Optimal Range |
 |-----------|--------------|
-| Temperature | 1400–1450°C |
-| Spin Speed | 1000–1200 RPM |
-| Carbon % | 3.4–3.6% |
-| Silicon % | 2.0–2.5% |
-| Cooling | 60–90 sec |
-| Flow Rate | 1.2–1.8 |
+| Temperature | 1400-1450 deg C |
+| Spin Speed | 1000-1200 RPM |
+| Carbon % | 3.4-3.6% |
+| Silicon % | 2.0-2.5% |
+| Cooling | 60-90 sec |
+| Flow Rate | 1.2-1.8 |
 """)
 
     # ── UPGRADE 2: BATCH UPLOAD ────────────────────────────
     else:
-        st.subheader("📂 Batch Prediction — Upload CSV")
+        st.subheader("📂 Batch Prediction - Upload CSV")
         st.markdown("""
 Upload a CSV with these **exact column names**:
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `pour_temp` | Pour temperature °C | 1425 |
+| `pour_temp` | Pour temperature  deg C | 1425 |
 | `spin_rpm` | Spin speed RPM | 1100 |
 | `carbon_pct` | Carbon % | 3.5 |
 | `silicon_pct` | Silicon % | 2.25 |
@@ -955,16 +1083,16 @@ Upload a CSV with these **exact column names**:
             st.markdown(f"**{len(df_in)} rows loaded.** Preview:")
             st.dataframe(df_in.head(5), use_container_width=True, hide_index=True)
 
-            if st.button("🚀 Run Batch Prediction", type="primary", use_container_width=True):
+            if st.button("[RUN] Run Batch Prediction", type="primary", use_container_width=True):
                 df_out, err = run_batch_prediction(df_in, clf, reg, scaler, le)
                 if err:
                     st.error(f"Error: {err}")
                 else:
-                    st.success(f"✅ Predicted {len(df_out)} casting runs!")
+                    st.success(f"[OK] Predicted {len(df_out)} casting runs!")
 
                     # Summary metrics
                     total    = len(df_out)
-                    good     = (df_out['verdict'] == '🟢 GOOD').sum()
+                    good     = (df_out['verdict'] == '[ACTIVE] GOOD').sum()
                     rejects  = total - good
                     avg_score = df_out['quality_score'].mean()
 
@@ -974,7 +1102,7 @@ Upload a CSV with these **exact column names**:
                     m3.metric("Likely Rejects",rejects, delta=f"-{rejects/total*100:.0f}%", delta_color="inverse")
                     m4.metric("Avg Quality",   f"{avg_score:.1f}/100")
 
-                    # Results table — color coded
+                    # Results table - color coded
                     st.markdown("---")
                     st.subheader("📋 Prediction Results")
                     st.dataframe(
@@ -1004,12 +1132,12 @@ Upload a CSV with these **exact column names**:
                         mime="text/csv", use_container_width=True
                     )
 
-# ══════════════════════════════════════════════════════════════
-# MODULE 2 — DEMAND FORECASTING (confidence intervals already in original)
-# ══════════════════════════════════════════════════════════════
-elif page == "📊 Demand Forecasting":
-    st.title("📊 Demand Forecasting")
-    st.markdown("##### AI-powered order forecasting per sector — next 6 months")
+# ==============================================================
+# MODULE 2 - DEMAND FORECASTING (confidence intervals already in original)
+# ==============================================================
+elif page == "[Forecast] Demand Forecasting":
+    st.title("[Forecast] Demand Forecasting")
+    st.markdown("##### AI-powered order forecasting per sector - next 6 months")
     st.markdown("---")
 
     df      = load_forecast()
@@ -1080,7 +1208,7 @@ elif page == "📊 Demand Forecasting":
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
     st.markdown("---")
-    st.subheader("📊 Projected 6-Month Total")
+    st.subheader("[Forecast] Projected 6-Month Total")
     totals = [{'Sector':s,'Total':round(df[(df['sector']==s) & (df['date']>cutoff)].head(6)['predicted'].sum())}
               for s in selected]
     bfig = px.bar(pd.DataFrame(totals),x='Sector',y='Total',color='Sector',
@@ -1091,13 +1219,13 @@ elif page == "📊 Demand Forecasting":
         yaxis=dict(gridcolor='rgba(255,255,255,0.1)'))
     st.plotly_chart(bfig, use_container_width=True)
 
-# ══════════════════════════════════════════════════════════════
-# MODULE 3 — ALLOY RECOMMENDATION
-# ══════════════════════════════════════════════════════════════
-elif page == "⚗️ Alloy Recommendation":
+# ==============================================================
+# MODULE 3 - ALLOY RECOMMENDATION
+# ==============================================================
+elif page == "[Alloy] Alloy Recommendation":
     clf_a, sc_a, le_a, grades_db = load_alloy()
 
-    st.title("⚗️ Alloy Recommendation Engine")
+    st.title("[Alloy] Alloy Recommendation Engine")
     st.markdown("##### Describe your application → AI recommends the optimal ductile iron grade")
     st.markdown("---")
 
@@ -1106,7 +1234,7 @@ elif page == "⚗️ Alloy Recommendation":
         st.subheader("📋 Application Requirements")
         tensile   = st.slider("💪 Required Tensile Strength (MPa)", 300, 950, 500, 10)
         hardness  = st.slider("🔩 Required Hardness (BHN)",         100, 380, 200, 5)
-        temp      = st.slider("🌡️ Max Operating Temperature (°C)",  50,  700, 250, 10)
+        temp      = st.slider("🌡️ Max Operating Temperature ( deg C)",  50,  700, 250, 10)
         corrosion = st.select_slider("🧪 Corrosion Resistance",
                                      options=["Low","Medium","High"], value="Medium")
         thickness = st.slider("📐 Wall Thickness (mm)", 5, 80, 25)
@@ -1122,12 +1250,12 @@ elif page == "⚗️ Alloy Recommendation":
             top_grade = le_a.inverse_transform([top3_idx[0]])[0]
             info      = grades_db.get(top_grade, {})
 
-            st.subheader("🏆 Recommended Grade")
+            st.subheader("[RECOMMENDED] Recommended Grade")
             st.markdown(f"## `{top_grade}`")
             st.success(info.get('description',''))
             st.markdown("---")
 
-            st.subheader("⚗️ Composition")
+            st.subheader("[Alloy] Composition")
             comp = info.get('composition',{})
             c1,c2,c3,c4 = st.columns(4)
             c1.metric("Carbon %",    comp.get('carbon','-'))
@@ -1136,12 +1264,12 @@ elif page == "⚗️ Alloy Recommendation":
             c4.metric("Magnesium %", comp.get('magnesium','-'))
             st.markdown("---")
 
-            st.subheader("📊 Mechanical Properties")
+            st.subheader("[Forecast] Mechanical Properties")
             p1,p2,p3,p4 = st.columns(4)
-            p1.metric("Tensile",     f"{info.get('tensile_min','?')}–{info.get('tensile_max','?')} MPa")
-            p2.metric("Hardness",    f"{info.get('hardness_min','?')}–{info.get('hardness_max','?')} BHN")
+            p1.metric("Tensile",     f"{info.get('tensile_min','?')}-{info.get('tensile_max','?')} MPa")
+            p2.metric("Hardness",    f"{info.get('hardness_min','?')}-{info.get('hardness_max','?')} BHN")
             p3.metric("Elongation",  f"{info.get('elongation','?')}%")
-            p4.metric("Price/kg",    f"₹{info.get('price_per_kg','?')}")
+            p4.metric("Price/kg",    f"Rs.{info.get('price_per_kg','?')}")
             st.markdown("---")
 
             st.subheader("📈 Match Confidence")
@@ -1206,26 +1334,26 @@ elif page == "⚗️ Alloy Recommendation":
             )
             st.plotly_chart(fig_radar, use_container_width=True)
         else:
-            st.markdown("### 👈 Set requirements & click **Find Best Alloy Grade**")
+            st.markdown("### <- Set requirements & click **Find Best Alloy Grade**")
             st.markdown("""
 | Grade | Tensile (MPa) | Best For |
 |-------|--------------|----------|
-| IS 400/12 | 400–500 | General, Pharma |
-| IS 500/7  | 500–600 | Hydraulics |
-| IS 600/3  | 600–700 | Locomotives |
-| IS 700/2  | 700–800 | Wind Energy |
-| IS 800/2  | 800–950 | Heavy Engineering |
-| SiMo 0.8  | 450–550 | High Temp / Corrosion |
+| IS 400/12 | 400-500 | General, Pharma |
+| IS 500/7  | 500-600 | Hydraulics |
+| IS 600/3  | 600-700 | Locomotives |
+| IS 700/2  | 700-800 | Wind Energy |
+| IS 800/2  | 800-950 | Heavy Engineering |
+| SiMo 0.8  | 450-550 | High Temp / Corrosion |
 """)
 
-# ══════════════════════════════════════════════════════════════
-# MODULE 4 — RFQ INTELLIGENCE
-# ══════════════════════════════════════════════════════════════
-elif page == "📄 RFQ Intelligence":
+# ==============================================================
+# MODULE 4 - RFQ INTELLIGENCE
+# ==============================================================
+elif page == "[RFQ] RFQ Intelligence":
     _, _, le_a2, grades_db2 = load_alloy()
     clf_a2, sc_a2, _, _     = load_alloy()
 
-    st.title("📄 RFQ Intelligence")
+    st.title("[RFQ] RFQ Intelligence")
     st.markdown("##### Paste any customer RFQ → AI extracts specs & generates a quote instantly")
     st.markdown("---")
 
@@ -1271,11 +1399,11 @@ ABC Engineering Pvt Ltd"""
             top_grade = le_a2.inverse_transform(clf_a2.predict(Xs))[0]
             info      = grades_db2.get(top_grade, {})
 
-            st.subheader("🏆 Recommended Grade")
-            st.success(f"**{top_grade}** — {info.get('description','')}")
+            st.subheader("[RECOMMENDED] Recommended Grade")
+            st.success(f"**{top_grade}** - {info.get('description','')}")
 
             st.markdown("---")
-            st.subheader("📄 Generated Quote")
+            st.subheader("[RFQ] Generated Quote")
 
             qty_kg = float(re.search(r'\d+', parsed['quantity']).group()) if re.search(r'\d+', parsed['quantity']) else 100
             ppkg   = info.get('price_per_kg', 75)
@@ -1283,16 +1411,16 @@ ABC Engineering Pvt Ltd"""
             lead   = info.get('lead_days', 21)
 
             quote = f"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------
   VIJAY SPHEROIDALS PVT LTD
-  Quotation — {datetime.today().strftime('%d %b %Y')}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Quotation - {datetime.today().strftime('%d %b %Y')}
+----------------------------------------
 
   Grade Recommended : {top_grade}
   Application       : {parsed['application']}
   Quantity          : {parsed['quantity']}
-  Unit Rate         : ₹{ppkg}/kg (ex-works)
-  Estimated Total   : ₹{total:,.0f}
+  Unit Rate         : Rs.{ppkg}/kg (ex-works)
+  Estimated Total   : Rs.{int(total):,}
   Lead Time         : {lead} working days
   Delivery By       : {parsed['delivery']}
   Validity          : 30 days from quote date
@@ -1301,9 +1429,9 @@ ABC Engineering Pvt Ltd"""
   Quality Standard  : ISO 9001:2015
   Payment Terms     : 50% advance, 50% on dispatch
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------
   www.vijayspheroidals.in
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------
 """
             st.code(quote, language=None)
             c1, c2 = st.columns(2)
@@ -1313,31 +1441,31 @@ ABC Engineering Pvt Ltd"""
                                    mime="text/plain", use_container_width=True)
             with c2:
                 pdf_bytes = generate_quote_pdf(parsed, top_grade, ppkg, qty_kg, total, lead)
-                st.download_button("📄 Download PDF Quotation", pdf_bytes,
+                st.download_button("[RFQ] Download PDF Quotation", pdf_bytes,
                                    file_name=f"VSPL_Quotation_{datetime.today().strftime('%Y%m%d')}.pdf",
                                    mime="application/pdf", use_container_width=True)
         elif analyze_btn:
             st.warning("Please paste an RFQ first.")
         else:
-            st.markdown("### 👈 Paste an RFQ and click **Extract & Generate Quote**")
+            st.markdown("### <- Paste an RFQ and click **Extract & Generate Quote**")
             st.markdown("""
 **What AI extracts automatically:**
-- ✅ Quantity (kg/pcs)
-- ✅ Required tensile strength (MPa)
-- ✅ Application type
-- ✅ Diameter / wall thickness
-- ✅ Delivery timeline
+- [OK] Quantity (kg/pcs)
+- [OK] Required tensile strength (MPa)
+- [OK] Application type
+- [OK] Diameter / wall thickness
+- [OK] Delivery timeline
 
 **What AI generates:**
-- 🏆 Best matching alloy grade
-- 💰 Price estimate (₹/kg)
-- 📄 Formatted quote ready to send
+- [RECOMMENDED] Best matching alloy grade
+- [PRICE] Price estimate (Rs./kg)
+- [RFQ] Formatted quote ready to send
 """)
 
-# ══════════════════════════════════════════════════════════════
-# MODULE 5 — SMART ASSISTANT (Gemini API)
-# ══════════════════════════════════════════════════════════════
-elif page == "🤖 Smart Assistant":
+# ==============================================================
+# MODULE 5 - SMART ASSISTANT (Gemini API)
+# ==============================================================
+elif page == "[Assistant] Smart Assistant":
     def build_bi_system_prompt(selected_dataset_name, columns):
         return f"""You are the VSPL AI BI Data Analyst, a conversational business intelligence assistant inspired by Rill Data.
 Your task is to analyze local casting datasets based on natural language questions.
@@ -1375,15 +1503,15 @@ Example Output format:
 }}
 """
 
-    st.title("🤖 VSPL Smart Assistant Suite")
-    st.markdown("##### Powered by **Gemini AI** — General Knowledge and Rill-Style conversational BI analytics")
+    st.title("[Assistant] VSPL Smart Assistant Suite")
+    st.markdown("##### Powered by **Gemini AI** - General Knowledge and Rill-Style conversational BI analytics")
     st.markdown("---")
 
-    smart_tab1, smart_tab2 = st.tabs(["💬 VSPL Knowledge Assistant", "📊 AI BI Data Analyst (Rill-Style)"])
+    smart_tab1, smart_tab2 = st.tabs(["[CHAT] VSPL Knowledge Assistant", "[Forecast] AI BI Data Analyst (Rill-Style)"])
 
-    # 💬 VSPL Knowledge Assistant
+    # [CHAT] VSPL Knowledge Assistant
     with smart_tab1:
-        st.subheader("💬 General Metallurgy & Company Q&A")
+        st.subheader("[CHAT] General Metallurgy & Company Q&A")
         st.markdown("Ask anything about VSPL products, alloy grades, centrifugal casting processes, or pricing.")
         
         kb = load_kb()
@@ -1391,12 +1519,12 @@ Example Output format:
         if 'messages' not in st.session_state:
             st.session_state.messages = [
                 {"role": "assistant",
-                 "content": "👋 Hello! I'm the VSPL Smart Assistant, powered by Google Gemini AI.\n\nAsk me anything about our alloy grades, casting process, delivery timelines, safety procedures, or pricing — I'll give you a detailed, intelligent answer."}
+                 "content": "Hello! Hello! I'm the VSPL Smart Assistant, powered by Google Gemini AI.\n\nAsk me anything about our alloy grades, casting process, delivery timelines, safety procedures, or pricing - I'll give you a detailed, intelligent answer."}
             ]
 
         # Chat history
         for msg in st.session_state.messages:
-            with st.chat_message(msg['role'], avatar="🏭" if msg['role']=='assistant' else "👤"):
+            with st.chat_message(msg['role'], avatar="🏭" if msg['role']=='assistant' else "[USER]"):
                 st.markdown(msg['content'])
 
         # Quick suggestions
@@ -1430,16 +1558,16 @@ Example Output format:
             st.session_state.messages.append({"role":"assistant","content":ans})
             st.rerun()
 
-        if st.button("🗑️ Clear General Chat", use_container_width=False):
+        if st.button("[CLEAR] Clear General Chat", use_container_width=False):
             st.session_state.messages = [
                 {"role":"assistant",
-                 "content":"👋 Hello! I'm the VSPL Smart Assistant. How can I help you?"}
+                 "content":"Hello! Hello! I'm the VSPL Smart Assistant. How can I help you?"}
             ]
             st.rerun()
 
-    # 📊 AI BI Data Analyst (Rill-Style)
+    # [Forecast] AI BI Data Analyst (Rill-Style)
     with smart_tab2:
-        st.subheader("📊 Rill-Style Natural Language Data Analyst")
+        st.subheader("[Forecast] Rill-Style Natural Language Data Analyst")
         st.markdown("Query, aggregate, and visualize our local manufacturing datasets Conversational-style using DuckDB/Pandas.")
         
         # Dataset selector
@@ -1453,17 +1581,17 @@ Example Output format:
             df_bi = pd.read_csv(DATA_DIR / 'casting_data_large.csv')
             dataset_name = "casting_data_large.csv"
             
-        st.info(f"🟢 Active Data Frame: **{df_bi.shape[0]:,} records** with features: `{', '.join(df_bi.columns.tolist())}`")
+        st.info(f"[ACTIVE] Active Data Frame: **{df_bi.shape[0]:,} records** with features: `{', '.join(df_bi.columns.tolist())}`")
         
         if 'bi_messages' not in st.session_state:
             st.session_state.bi_messages = [
                 {"role": "assistant", 
-                 "content": "👋 Hello! I'm your VSPL Conversational BI Analyst. Like Rill Data, you can query our active casting run database directly. Ask me things like:\n- *'Show the average quality score by mold type'*\n- *'Calculate the correlation between pour temperature and reject rate'*\n- *'Show a bar chart of the count of rejects vs mold types'*\n- *'Compare spin speed (RPM) averages between rejects and good runs'*"}
+                 "content": "Hello! Hello! I'm your VSPL Conversational BI Analyst. Like Rill Data, you can query our active casting run database directly. Ask me things like:\n- *'Show the average quality score by mold type'*\n- *'Calculate the correlation between pour temperature and reject rate'*\n- *'Show a bar chart of the count of rejects vs mold types'*\n- *'Compare spin speed (RPM) averages between rejects and good runs'*"}
             ]
             
         # Display BI chat history
         for msg in st.session_state.bi_messages:
-            with st.chat_message(msg['role'], avatar="📊" if msg['role']=='assistant' else "👤"):
+            with st.chat_message(msg['role'], avatar="[Forecast]" if msg['role']=='assistant' else "[USER]"):
                 st.markdown(msg['content'])
                 if 'query_result' in msg:
                     st.dataframe(pd.DataFrame(msg['query_result']), use_container_width=True)
@@ -1477,7 +1605,7 @@ Example Output format:
             with st.spinner("AI Analyst is querying dataset..."):
                 api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
                 if not api_key:
-                    st.session_state.bi_messages.append({"role": "assistant", "content": "⚠️ Gemini API key not set. Please set the GEMINI_API_KEY in the sidebar to use the Rill BI chatbot."})
+                    st.session_state.bi_messages.append({"role": "assistant", "content": "[WARNING] Gemini API key not set. Please set the GEMINI_API_KEY in the sidebar to use the Rill BI chatbot."})
                     st.rerun()
                 
                 # Build custom system prompt containing schema
@@ -1545,23 +1673,23 @@ Example Output format:
                                     
                             st.session_state.bi_messages.append(msg_dict)
                         except Exception as eval_err:
-                            st.session_state.bi_messages.append({"role": "assistant", "content": f"⚠️ Error executing the generated Pandas query `{pandas_code}`: {eval_err}"})
+                            st.session_state.bi_messages.append({"role": "assistant", "content": f"[WARNING] Error executing the generated Pandas query `{pandas_code}`: {eval_err}"})
                     else:
-                        st.session_state.bi_messages.append({"role": "assistant", "content": f"⚠️ API Error ({res.status_code}): {res.text}"})
+                        st.session_state.bi_messages.append({"role": "assistant", "content": f"[WARNING] API Error ({res.status_code}): {res.text}"})
                 except Exception as req_err:
-                    st.session_state.bi_messages.append({"role": "assistant", "content": f"⚠️ Connection error: {req_err}"})
+                    st.session_state.bi_messages.append({"role": "assistant", "content": f"[WARNING] Connection error: {req_err}"})
             st.rerun()
             
-        if st.button("🗑️ Clear BI Analyst Conversations", use_container_width=False):
+        if st.button("[CLEAR] Clear BI Analyst Conversations", use_container_width=False):
             st.session_state.bi_messages = [
                 {"role": "assistant", 
-                 "content": "👋 Hello! I'm your VSPL Conversational BI Analyst. Like Rill Data, you can query our active casting run database directly."}
+                 "content": "Hello! Hello! I'm your VSPL Conversational BI Analyst. Like Rill Data, you can query our active casting run database directly."}
             ]
             st.rerun()
 
 
-elif page == "📷 CV Defect Detector":
-    st.title("📷 Real-time CV Defect Detector")
+elif page == "[CV] CV Defect Detector":
+    st.title("[CV] Real-time CV Defect Detector")
     st.markdown("##### Real-time automated surface inspection using Convolutional Neural Networks (CNN) & YOLOv8")
     st.markdown("---")
 
@@ -1570,21 +1698,21 @@ elif page == "📷 CV Defect Detector":
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.subheader("⚙️ Inspection Control Panel")
+        st.subheader("[SETUP] Inspection Control Panel")
         source = st.radio("Casting Image Source", [
-            "🎥 Choose from Casting Samples (Simulated Feed)",
+            "[IoT] Choose from Casting Samples (Simulated Feed)",
             "📂 Upload High-Resolution Inspection Image"
         ])
 
         outcome = "Auto-Detect"
         uploaded_file = None
 
-        if "🎥 Choose from Casting Samples" in source:
+        if "[IoT] Choose from Casting Samples" in source:
             sample_run = st.selectbox("Select Casting Run Sample", [
-                "Run #4105 — Flawless Surface Casting",
-                "Run #4106 — Surface Crack Flaw",
-                "Run #4107 — Gas Blowhole Cavities",
-                "Run #4108 — Solidification Shrinkage"
+                "Run #4105 - Flawless Surface Casting",
+                "Run #4106 - Surface Crack Flaw",
+                "Run #4107 - Gas Blowhole Cavities",
+                "Run #4108 - Solidification Shrinkage"
             ])
         else:
             uploaded_file = st.file_uploader("Upload casting inspection image", type=['png', 'jpg', 'jpeg'])
@@ -1597,19 +1725,19 @@ elif page == "📷 CV Defect Detector":
             ])
 
         st.markdown("---")
-        st.markdown("**🔬 Defect Detection Model Settings**")
+        st.markdown("**[SCIENCE] Defect Detection Model Settings**")
         model_name = st.selectbox("AI Model Model Architecture", [
             "YOLOv8x-Defect (Real-time Object Detection)",
             "ResNet50-Ductile (Surface Classification)"
         ])
         conf_thresh = st.slider("Confidence Threshold", 0.1, 1.0, 0.5, 0.05)
-        run_inspection = st.button("🚀 Run Surface Inspection", use_container_width=True, type="primary")
+        run_inspection = st.button("[RUN] Run Surface Inspection", use_container_width=True, type="primary")
 
     with col2:
-        st.subheader("📊 CV Diagnostics")
+        st.subheader("[Forecast] CV Diagnostics")
 
         # Determine active run parameters
-        if "🎥 Choose from Casting Samples" in source:
+        if "[IoT] Choose from Casting Samples" in source:
             if "Flawless" in sample_run:
                 run_type = "flawless"
                 img_path = DATA_DIR / 'defect_flawless.png'
@@ -1678,7 +1806,7 @@ elif page == "📷 CV Defect Detector":
                 status_color = ""
 
                 if run_type == "flawless":
-                    verdict = "🟢 PASSED - FLAWLESS SURFACE QUALITY"
+                    verdict = "[ACTIVE] PASSED - FLAWLESS SURFACE QUALITY"
                     status_color = "green"
                     tips = ["Cast surface passes all dimensional & visual QA parameters.", "No process adjustments required."]
                 elif run_type == "crack":
@@ -1694,10 +1822,10 @@ elif page == "📷 CV Defect Detector":
                     tips = [
                         "🌡️ Thermal stress cracking detected. Reduce cooling rate parameters in solidification.",
                         "❄️ Increase in-mold cooling time before shakeout.",
-                        "⚙️ Verify alloy composition (Module 3) for optimal elongation properties."
+                        "[SETUP] Verify alloy composition (Module 3) for optimal elongation properties."
                     ]
                 elif run_type == "blowhole":
-                    verdict = "🔴 FAILED - SURFACE BLOWHOLE DEFECTS"
+                    verdict = "[ERROR] FAILED - SURFACE BLOWHOLE DEFECTS"
                     status_color = "orange"
                     boxes = [
                         {
@@ -1713,11 +1841,11 @@ elif page == "📷 CV Defect Detector":
                     ]
                     tips = [
                         "💨 Dry sand molds thoroughly prior to pouring cast.",
-                        "🌡️ Pouring temperature is close to optimal range (1425°C), but venting must be increased.",
+                        "🌡️ Pouring temperature is close to optimal range (1425 deg C), but venting must be increased.",
                         "💧 Lower pouring velocity to reduce fluid entrainment."
                     ]
                 elif run_type == "shrinkage":
-                    verdict = "🔴 FAILED - SOLIDIFICATION SHRINKAGE"
+                    verdict = "[ERROR] FAILED - SOLIDIFICATION SHRINKAGE"
                     status_color = "purple"
                     boxes = [
                         {
@@ -1728,8 +1856,8 @@ elif page == "📷 CV Defect Detector":
                     ]
                     tips = [
                         "📐 Feeding defect detected. Adjust casting gating system/riser sizing.",
-                        "🌡️ Adjust pour temperatures within 1400-1450°C to allow feed flow.",
-                        "⚙️ Optimize silicon/carbon ratios (Module 3) to improve fluid expansion."
+                        "🌡️ Adjust pour temperatures within 1400-1450 deg C to allow feed flow.",
+                        "[SETUP] Optimize silicon/carbon ratios (Module 3) to improve fluid expansion."
                     ]
 
                 # Draw bounding boxes if confidence exceeds threshold
@@ -1782,7 +1910,7 @@ elif page == "📷 CV Defect Detector":
                 for tip in tips:
                     st.info(tip)
         else:
-            st.markdown("### 👈 Upload or Select a Casting Run Sample to Inspect")
+            st.markdown("### <- Upload or Select a Casting Run Sample to Inspect")
             st.markdown("""
 | Defect Type | Primary Cause | Solution |
 |-------------|---------------|----------|
@@ -1792,8 +1920,8 @@ elif page == "📷 CV Defect Detector":
 | Flawless Surface | Perfect Solidification | Maintain Optimal Process Ratios |
 """)
 
-elif page == "🎥 Live IoT Telemetry":
-    st.title("🎥 Live IoT Telemetry Cockpit")
+elif page == "[IoT] Live IoT Telemetry":
+    st.title("[IoT] Live IoT Telemetry Cockpit")
     st.markdown("##### Real-time digital-twin sensor streaming from Vijay Spheroidals casting floor")
     st.markdown("---")
 
@@ -1803,19 +1931,19 @@ elif page == "🎥 Live IoT Telemetry":
     col1, col2 = st.columns([1, 3])
 
     with col1:
-        st.subheader("⚙️ Stream Controls")
-        stream_active = st.checkbox("🔌 Activate Live Telemetry Stream", value=True)
+        st.subheader("[SETUP] Stream Controls")
+        stream_active = st.checkbox("[ONLINE] Activate Live Telemetry Stream", value=True)
         refresh_rate = st.slider("Sensor Refresh Interval (s)", 0.1, 2.0, 0.4)
         
         st.markdown("---")
-        st.markdown("**🛡️ Machine Status Indicators**")
-        st.success("🟢 Centrifugal Mold Spin: ACTIVE")
-        st.success("🟢 Coolant Pressure: OPTIMAL")
-        st.success("🟢 Ladle Tilt Actuator: ONLINE")
-        st.info("ℹ️ Active Run ID: VSPL-2026-904")
+        st.markdown("**[SAFE] Machine Status Indicators**")
+        st.success("[ACTIVE] Centrifugal Mold Spin: ACTIVE")
+        st.success("[ACTIVE] Coolant Pressure: OPTIMAL")
+        st.success("[ACTIVE] Ladle Tilt Actuator: ONLINE")
+        st.info("[INFO] Active Run ID: VSPL-2026-904")
 
     with col2:
-        st.subheader("📊 Real-time Sensor Channels")
+        st.subheader("[Forecast] Real-time Sensor Channels")
         
         # Placeholders for live metrics & charts
         m1, m2, m3 = st.columns(3)
@@ -1861,7 +1989,7 @@ elif page == "🎥 Live IoT Telemetry":
                 st.session_state.iot_flow.pop(0)
 
                 # Update stream metrics
-                met1.metric("Ladle Pour Temp", f"{new_temp:.1f} °C", f"{new_temp - last_temp:+.1f} °C")
+                met1.metric("Ladle Pour Temp", f"{new_temp:.1f}  deg C", f"{new_temp - last_temp:+.1f}  deg C")
                 met2.metric("Centrifugal Speed", f"{new_rpm:.0f} RPM", f"{new_rpm - last_rpm:+.0f} RPM")
                 met3.metric("Coolant Valve Flow", f"{new_flow:.2f} m³/h", f"{new_flow - last_flow:+.2f} m³/h")
 
@@ -1869,7 +1997,7 @@ elif page == "🎥 Live IoT Telemetry":
                 fig_iot = go.Figure()
                 fig_iot.add_trace(go.Scatter(
                     x=st.session_state.iot_time, y=st.session_state.iot_temp,
-                    name="Mold Temp (°C)", line=dict(color='#ef4444', width=3),
+                    name="Mold Temp ( deg C)", line=dict(color='#ef4444', width=3),
                     mode='lines+markers'
                 ))
                 fig_iot.add_trace(go.Scatter(
@@ -1881,7 +2009,7 @@ elif page == "🎥 Live IoT Telemetry":
                 fig_iot.update_layout(
                     title="Real-time Machine Diagnostics (Ladle Temp & Mold Speed)",
                     xaxis=dict(title="Time Steps (Ticks)"),
-                    yaxis=dict(title="Temperature (°C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
+                    yaxis=dict(title="Temperature ( deg C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
                     yaxis2=dict(title="Mold Speed (RPM)", titlefont=dict(color="#3b82f6"), tickfont=dict(color="#3b82f6"),
                                 overlaying='y', side='right'),
                     paper_bgcolor='rgba(0,0,0,0)',
@@ -1897,14 +2025,14 @@ elif page == "🎥 Live IoT Telemetry":
             
             st.rerun()
         else:
-            met1.metric("Ladle Pour Temp (PAUSED)", f"{st.session_state.iot_temp[-1]:.1f} °C")
+            met1.metric("Ladle Pour Temp (PAUSED)", f"{st.session_state.iot_temp[-1]:.1f}  deg C")
             met2.metric("Centrifugal Speed (PAUSED)", f"{st.session_state.iot_rpm[-1]:.0f} RPM")
             met3.metric("Coolant Valve Flow (PAUSED)", f"{st.session_state.iot_flow[-1]:.2f} m³/h")
 
             fig_iot = go.Figure()
             fig_iot.add_trace(go.Scatter(
                 x=st.session_state.iot_time, y=st.session_state.iot_temp,
-                name="Mold Temp (°C)", line=dict(color='#ef4444', width=3),
+                name="Mold Temp ( deg C)", line=dict(color='#ef4444', width=3),
                 mode='lines+markers'
             ))
             fig_iot.add_trace(go.Scatter(
@@ -1915,7 +2043,7 @@ elif page == "🎥 Live IoT Telemetry":
             fig_iot.update_layout(
                 title="Real-time Machine Diagnostics (PAUSED)",
                 xaxis=dict(title="Time Steps"),
-                yaxis=dict(title="Temperature (°C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
+                yaxis=dict(title="Temperature ( deg C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
                 yaxis2=dict(title="Mold Speed (RPM)", titlefont=dict(color="#3b82f6"), tickfont=dict(color="#3b82f6"),
                             overlaying='y', side='right'),
                 paper_bgcolor='rgba(0,0,0,0)',
@@ -1926,8 +2054,8 @@ elif page == "🎥 Live IoT Telemetry":
             )
             chart_place.plotly_chart(fig_iot, use_container_width=True)
 
-elif page == "🧠 Deep Learning Hub":
-    st.title("🧠 Deep Learning & LLM Hub")
+elif page == "[AI] Deep Learning Hub":
+    st.title("[AI] Deep Learning & LLM Hub")
     st.markdown("##### High-fidelity neural network training control room and offline custom LLM suite")
     st.markdown("---")
 
@@ -1939,9 +2067,9 @@ elif page == "🧠 Deep Learning Hub":
 
     st.markdown("---")
 
-    dl_tab1, dl_tab2 = st.tabs(["📊 Multi-Task Casting Predictor (DNN)", "🤖 Local LLM Studio (Mini-GPT)"])
+    dl_tab1, dl_tab2 = st.tabs(["[Forecast] Multi-Task Casting Predictor (DNN)", "[Assistant] Local LLM Studio (Mini-GPT)"])
 
-    # 📊 Multi-Task Casting Predictor (DNN)
+    # [Forecast] Multi-Task Casting Predictor (DNN)
     with dl_tab1:
         st.subheader("📥 Large-Scale Casting Run Dataset")
         st.markdown("""
@@ -1957,7 +2085,7 @@ elif page == "🧠 Deep Learning Hub":
                 return pd.read_csv(csv_path)
             
             df_large = load_large_csv()
-            st.success(f"✅ Large Dataset Found: **{df_large.shape[0]:,} rows** by **{df_large.shape[1]} columns**.")
+            st.success(f"[OK] Large Dataset Found: **{df_large.shape[0]:,} rows** by **{df_large.shape[1]} columns**.")
             
             # Show download button
             with open(csv_path, 'r', encoding='utf-8') as f:
@@ -1975,15 +2103,15 @@ elif page == "🧠 Deep Learning Hub":
             st.markdown("#### 🔍 Dataset Sample (First 5 Rows)")
             st.dataframe(df_large.head(), use_container_width=True)
             
-            with st.expander("📊 View Dataset Descriptive Statistics"):
+            with st.expander("[Forecast] View Dataset Descriptive Statistics"):
                 st.dataframe(df_large.describe(), use_container_width=True)
         else:
-            st.error("⚠️ Large dataset CSV not found. Please trigger the training script to generate it.")
+            st.error("[WARNING] Large dataset CSV not found. Please trigger the training script to generate it.")
         
         st.markdown("---")
         
         # DNN Training Section
-        st.subheader("🚀 PyTorch Multi-Task DNN Training & Convergence")
+        st.subheader("[RUN] PyTorch Multi-Task DNN Training & Convergence")
         st.markdown("""
         Train the **PyTorch Multi-Task Deep Neural Network (DNN)** online. This network has shared layers and simultaneously output:
         - **Classification**: Probability of rejection ($Quality < 65$).
@@ -1992,8 +2120,8 @@ elif page == "🧠 Deep Learning Hub":
         
         c_train1, c_train2 = st.columns([1, 1])
         with c_train1:
-            st.markdown("##### ⚙️ DNN Training Control Panel")
-            if st.button("🚀 Re-Train Multi-Task DNN (15 Epochs)", key="train_dnn_btn", use_container_width=True):
+            st.markdown("##### [SETUP] DNN Training Control Panel")
+            if st.button("[RUN] Re-Train Multi-Task DNN (15 Epochs)", key="train_dnn_btn", use_container_width=True):
                 st.info("Initializing PyTorch multi-task training subprocess...")
                 
                 import subprocess
@@ -2020,7 +2148,7 @@ elif page == "🧠 Deep Learning Hub":
                         console_placeholder.code(console_text, language="bash")
                         
                     process.wait()
-                    st.success("🎉 PyTorch Multi-Task DNN training completed and weights saved successfully!")
+                    st.success("[SUCCESS] PyTorch Multi-Task DNN training completed and weights saved successfully!")
                     st.cache_resource.clear()
                 except Exception as e:
                     st.error(f"Execution error: {e}")
@@ -2033,16 +2161,16 @@ elif page == "🧠 Deep Learning Hub":
             else:
                 st.info("Loss curves will be generated once training completes.")
 
-    # 🤖 Local LLM Studio (Mini-GPT)
+    # [Assistant] Local LLM Studio (Mini-GPT)
     with dl_tab2:
-        st.subheader("🤖 Local Mini-GPT Studio")
+        st.subheader("[Assistant] Local Mini-GPT Studio")
         st.markdown("""
         Experience **real, generative pre-trained language model training** completely inside your browser locally on CPU!
         We have built a custom character-level **Generative Pretrained Transformer (GPT)** in PyTorch that trains on the VSPL metallurgy knowledge base.
         """)
         
         # GPT architecture summary
-        with st.expander("🔬 View Transformer Self-Attention Architecture"):
+        with st.expander("[SCIENCE] View Transformer Self-Attention Architecture"):
             st.markdown("""
             This decoder-only GPT features:
             - **Causal Self-Attention**: Masked attention matrix forces tokens to only attend to past tokens.
@@ -2053,10 +2181,10 @@ elif page == "🧠 Deep Learning Hub":
             
         c_gpt1, c_gpt2 = st.columns([1, 1])
         with c_gpt1:
-            st.markdown("##### ⚙️ LLM Training Control Room")
+            st.markdown("##### [SETUP] LLM Training Control Room")
             num_epochs = st.slider("Select Training Epochs", min_value=100, max_value=1000, value=300, step=100, help="More epochs lead to better spelling and structure but take longer to train.")
             
-            if st.button("🚀 Train Custom Local GPT LLM Now", key="train_gpt_btn", use_container_width=True):
+            if st.button("[RUN] Train Custom Local GPT LLM Now", key="train_gpt_btn", use_container_width=True):
                 st.info("Initializing Local GPT training subprocess...")
                 
                 import subprocess
@@ -2083,22 +2211,22 @@ elif page == "🧠 Deep Learning Hub":
                         console_placeholder.code(console_text, language="bash")
                         
                     process.wait()
-                    st.success("🎉 Local GPT LLM training completed and weights saved!")
+                    st.success("[SUCCESS] Local GPT LLM training completed and weights saved!")
                     st.cache_resource.clear()
                 except Exception as e:
                     st.error(f"Execution error: {e}")
                     
         with c_gpt2:
-            st.markdown("##### 🔮 Autoregressive Text Generator")
+            st.markdown("##### [PREDICT] Autoregressive Text Generator")
             gpt_model, vocab = load_local_gpt()
             if gpt_model is not None and vocab is not None:
-                st.success("🟢 Local GPT Weights Loaded & Ready!")
+                st.success("[ACTIVE] Local GPT Weights Loaded & Ready!")
                 
                 prompt_input = st.text_input("Enter Prompt:", value="Topic: grade\nDetail:", help="Provide a starting phrase like 'Topic: safety' or 'Topic: casting'")
                 gen_tokens = st.slider("Tokens to Generate", 50, 300, 150, step=50)
                 temp = st.slider("Temperature (Creativity)", 0.2, 1.2, 0.6, step=0.1, help="Higher temperature makes text more creative but less coherent.")
                 
-                if st.button("🔮 Generate Text Offline", use_container_width=True):
+                if st.button("[PREDICT] Generate Text Offline", use_container_width=True):
                     with st.spinner("Generating autoregressive text..."):
                         char_to_idx = vocab['char_to_idx']
                         idx_to_char = vocab['idx_to_char']
@@ -2121,14 +2249,14 @@ elif page == "🧠 Deep Learning Hub":
                         st.markdown("**Generated Metallurgy text:**")
                         st.info(output_text)
             else:
-                st.warning("⚠️ Local GPT weights not found. Please run the training first to generate the weights.")
+                st.warning("[WARNING] Local GPT weights not found. Please run the training first to generate the weights.")
 
     st.markdown("---")
-    st.subheader("💬 Gemini Metallurgy & LLM AI Tutor")
+    st.subheader("[CHAT] Gemini Metallurgy & LLM AI Tutor")
     st.markdown("Get expert advice on how deep learning and transformer language models apply to VSPL metallurgy, carbon equivalents, and casting runs.")
     
     tutor_query = st.text_input("Ask the AI Tutor a question:", value="Explain how the Carbon Equivalent ratio predicts defects in the dataset", help="Ask anything about LLMs, Deep Learning, or metallurgy physics.")
-    if st.button("💬 Ask Tutor", use_container_width=False):
+    if st.button("[CHAT] Ask Tutor", use_container_width=False):
         if not tutor_query:
             st.warning("Please enter a question.")
         else:
@@ -2145,7 +2273,7 @@ elif page == "🧠 Deep Learning Hub":
                 # Use standard system prompt call style
                 api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
                 if not api_key:
-                    st.error("⚠️ Gemini API key not set. Please paste it in the sidebar.")
+                    st.error("[WARNING] Gemini API key not set. Please paste it in the sidebar.")
                 else:
                     try:
                         import requests
