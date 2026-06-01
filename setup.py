@@ -29,7 +29,7 @@ print("  VSPL AI Platform — Setup")
 print("=" * 55)
 
 # ── 1. Casting Quality Data & Model ───────────────────────────
-print("\n[1/3] Training Casting Quality Predictor...")
+print("\n[1/3] Training Casting Quality Predictor (Physics-Based)...")
 
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -37,48 +37,37 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_absolute_error
 import joblib
 
-np.random.seed(42)
-N = 1200
+large_csv_path = DDIR / 'casting_data_large.csv'
+if not large_csv_path.exists():
+    print("   [!] Physics dataset not found. Generating now...")
+    import subprocess
+    subprocess.run([sys.executable, str(DDIR / 'generate_physics_data.py')], check=True)
 
-temperature     = np.random.uniform(1350, 1520, N)
-rpm             = np.random.uniform(700, 1600, N)
-carbon_pct      = np.random.uniform(3.0, 4.0, N)
-silicon_pct     = np.random.uniform(1.5, 3.0, N)
-cooling_time    = np.random.uniform(25, 130, N)
-mold_type       = np.random.choice(['Permanent', 'Sand', 'Die'], N, p=[0.5, 0.3, 0.2])
-metal_flow_rate = np.random.uniform(0.5, 2.5, N)
-
-quality = 100.0
-quality -= np.abs(temperature - 1425) * 0.25
-quality -= np.abs(rpm - 1100) * 0.05
-quality -= np.abs(carbon_pct - 3.5) * 12
-quality -= np.abs(silicon_pct - 2.25) * 10
-quality -= np.abs(cooling_time - 75) * 0.18
-quality -= np.abs(metal_flow_rate - 1.5) * 5
-mold_bonus = np.array([{'Permanent': 3, 'Sand': 0, 'Die': 1.5}[m] for m in mold_type])
-quality += mold_bonus + np.random.normal(0, 4, N)
-quality = np.clip(quality, 0, 100)
-reject  = (quality < 65).astype(int)
-
-cast_df = pd.DataFrame({
-    'temperature': temperature.round(1), 'rpm': rpm.round(0).astype(int),
-    'carbon_pct': carbon_pct.round(3), 'silicon_pct': silicon_pct.round(3),
-    'cooling_time': cooling_time.round(1), 'mold_type': mold_type,
-    'metal_flow_rate': metal_flow_rate.round(2),
-    'quality_score': quality.round(2), 'reject': reject
-})
-cast_df.to_csv(DDIR / 'casting_data.csv', index=False)
+cast_df = pd.read_csv(large_csv_path)
 
 le_cast = LabelEncoder()
 cast_df['mold_enc'] = le_cast.fit_transform(cast_df['mold_type'])
-feats = ['temperature','rpm','carbon_pct','silicon_pct','cooling_time','metal_flow_rate','mold_enc']
-X = cast_df[feats]; y_c = cast_df['reject']; y_r = cast_df['quality_score']
-Xt, Xe, yct, yce, yrt, yre = train_test_split(X, y_c, y_r, test_size=0.2, random_state=42)
-sc = StandardScaler(); Xts = sc.fit_transform(Xt); Xes = sc.transform(Xe)
 
-clf = GradientBoostingClassifier(n_estimators=200, random_state=42)
+feats = [
+    'carbon_pct', 'silicon_pct', 'manganese_pct', 'phosphorus_pct',
+    'magnesium_added_pct', 'treatment_time_min', 'rpm', 'mold_diameter_m',
+    'pour_temp_c', 'mold_preheat_c', 'wall_thickness_mm', 'mold_enc',
+    'carbon_equivalent', 'superheat_c', 'G_factor',
+    'Mg_effective_pct', 'nodularity_index', 'cooling_rate_cs'
+]
+
+X = cast_df[feats]
+y_c = (cast_df['quality_score'] < 20.0).astype(int)
+y_r = cast_df['quality_score']
+
+Xt, Xe, yct, yce, yrt, yre = train_test_split(X, y_c, y_r, test_size=0.2, random_state=42)
+sc = StandardScaler()
+Xts = sc.fit_transform(Xt)
+Xes = sc.transform(Xe)
+
+clf = GradientBoostingClassifier(n_estimators=100, max_depth=5, random_state=42)
 clf.fit(Xts, yct)
-reg = GradientBoostingRegressor(n_estimators=200, random_state=42)
+reg = GradientBoostingRegressor(n_estimators=100, max_depth=5, random_state=42)
 reg.fit(Xts, yrt)
 
 acc = accuracy_score(yce, clf.predict(Xes))
@@ -86,8 +75,10 @@ mae = mean_absolute_error(yre, reg.predict(Xes))
 print(f"   ✅ Classifier accuracy : {acc*100:.1f}%")
 print(f"   ✅ Regressor MAE       : {mae:.2f} pts")
 
-joblib.dump(clf, MDIR/'classifier.pkl'); joblib.dump(reg, MDIR/'regressor.pkl')
-joblib.dump(sc,  MDIR/'scaler.pkl');     joblib.dump(le_cast, MDIR/'label_encoder.pkl')
+joblib.dump(clf, MDIR/'classifier.pkl')
+joblib.dump(reg, MDIR/'regressor.pkl')
+joblib.dump(sc,  MDIR/'scaler.pkl')
+joblib.dump(le_cast, MDIR/'label_encoder.pkl')
 joblib.dump(feats, MDIR/'features.pkl')
 
 # ── 2. Demand Forecasting ─────────────────────────────────────

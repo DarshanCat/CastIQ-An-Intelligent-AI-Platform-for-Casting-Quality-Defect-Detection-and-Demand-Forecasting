@@ -43,13 +43,20 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import plotly.graph_objects as go
 import plotly.express as px
 
-# Import expanded modular platforms (Modules 7 to 12)
+# Import expanded modular platforms (Modules 7 to 15)
 from modules.production_dashboard import render_production_dashboard
 from modules.inventory_tracker import render_inventory_tracker
 from modules.predictive_maintenance import render_predictive_maintenance
 from modules.order_tracker import render_order_tracker
 from modules.heat_treatment import render_heat_treatment
 from modules.cost_estimation import render_cost_estimation
+from modules.process_optimizer import render_process_optimizer
+from modules.spc_dashboard import render_spc_dashboard
+from modules.shap_explainer import render_shap_explainer
+from modules.digital_twin import render_digital_twin
+from modules.root_cause_analysis import render_rca
+from modules.energy_optimizer import render_energy_optimizer
+from modules.multi_objective_optimizer import render_multi_objective
 
 st.set_page_config(page_title="VSPL AI Platform", page_icon="🏭", layout="wide")
 
@@ -922,6 +929,9 @@ st.sidebar.markdown("---")
 page = st.sidebar.radio("Navigation", [
     "🏠 Dashboard",
     "🔮 Casting Quality Predictor",
+    "🎯 Process Optimizer",
+    "📉 SPC Dashboard",
+    "💡 SHAP Explainability",
     "📊 Demand Forecasting",
     "⚗️ Alloy Recommendation",
     "📄 RFQ Intelligence",
@@ -934,6 +944,10 @@ page = st.sidebar.radio("Navigation", [
     "🔥 Heat Treatment",
     "💰 Cost Estimator",
     "🧠 Deep Learning Hub",
+    "🌐 Digital Twin",
+    "🔍 Root Cause Analysis",
+    "⚡ Energy Optimizer",
+    "🧬 Multi-Objective (NSGA-II)",
 ], label_visibility="collapsed")
 
 st.sidebar.markdown("---")
@@ -945,6 +959,10 @@ for label, status in [
     ("🏭 Module 7", "✅ Live Yields"), ("📦 Module 8", "✅ Ledger Live"),
     ("🔧 Module 9", "✅ Diagnostics"), ("🚚 Module 10", "✅ Pipeline"),
     ("🔥 Module 11", "✅ Cycles"), ("💰 Module 12", "✅ Calculator"),
+    ("🎯 Module 13", "✅ Optimizer"), ("📉 Module 14", "✅ SPC Live"),
+    ("💡 Module 15", "✅ SHAP Explainer"),
+    ("🌐 Module 16", "✅ Twin Live"), ("🔍 Module 17", "✅ RCA Diagnosed"),
+    ("⚡ Module 18", "✅ Energy Live"), ("🧬 Module 19", "✅ NSGA-II Pareto"),
 ]:
     st.sidebar.markdown(f"{label} &nbsp; {status}")
 
@@ -981,6 +999,20 @@ if page == "🏠 Dashboard":
     modules = [
         ("🔮", "Casting Quality Predictor",
          "Predicts reject probability & quality score before every pour. Input 7 parameters → instant AI verdict + downloadable PDF report."),
+        ("🎯", "Process Optimizer",
+         "Inverse ML using scipy's Differential Evolution. Set your target quality → AI searches 11D parameters & computes the exact recipe."),
+        ("📉", "SPC Dashboard",
+         "Statistical Process Control charts (Xbar, CUSUM) with automatic Nelson rule violation alerts, batch drift, and Cpk metrics."),
+        ("💡", "SHAP Explainability",
+         "Full explanation center with Single Cast waterfalls, Global Feature Importance bar charts, and side-by-side comparative views."),
+        ("🌐", "Digital Twin",
+         "Physics simulation of the actual casting process. Simulates cooling curves (latent heat plateaus), nodularity decay, and G-force distributions."),
+        ("🔍", "Root Cause Analysis",
+         "Input a failed batch → AI runs SHAP and 7 physics rules to identify defect types (porosity, cold shuts, poor nodularity) and provide corrective actions."),
+        ("⚡", "Energy Optimizer",
+         "Furnace energy model prioritizing minimum pour temperatures to optimize quality and cut down energy costs (₹3,000–15,000/month)."),
+        ("🧬", "Multi-Objective (NSGA-II)",
+         "Optimize Quality, Cost, and Delivery simultaneously using NSGA-II. Renders an interactive 3D Pareto front of optimal solutions."),
         ("📊", "Demand Forecasting",
          "6-month order forecasting across 5 sectors with confidence intervals, historical trends, and sector comparison charts."),
         ("⚗️", "Alloy Recommendation Engine",
@@ -1060,8 +1092,30 @@ elif page == "🔮 Casting Quality Predictor":
 
         with col2:
             if predict:
+                cooling = int(thickness * 3) # compute cooling time
+                flow = 1.5
                 if model_choice == "Gradient Boosting (Traditional ML)":
-                    X  = np.array([[temp, rpm, carbon, silicon, thickness, 1.5, le.transform([mold])[0]]])
+                    mold_map = {'Permanent': 0, 'Sand': 1, 'Die': 2}
+                    mold_enc_val = mold_map[mold]
+                    
+                    # Compute all 6 physics-derived calculations (to align with the 18-feature model)
+                    ce = carbon + (silicon + phosphorus) / 3.0
+                    liquidus = 1669.0 - 124.0 * ce
+                    superheat = temp - liquidus
+                    g_fact = 0.00001118 * (rpm**2) * (mold_diam / 2.0)
+                    mg_eff = mg_added * np.exp(-0.05 * treat_time)
+                    nodularity = 98.0 * (1.0 - np.exp(-42.0 * mg_eff)) - (phosphorus * 80.0)
+                    nodularity = np.clip(nodularity, 0.0, 100.0)
+                    mold_k = {'Permanent': 16.0, 'Sand': 3.0, 'Die': 11.0}[mold]
+                    cooling_rate = (mold_k * (temp - preheat)) / (thickness**2 * 8.0)
+                    
+                    X = np.array([[
+                        carbon, silicon, manganese, phosphorus,
+                        mg_added, treat_time, rpm, mold_diam,
+                        temp, preheat, thickness, mold_enc_val,
+                        ce, superheat, g_fact,
+                        mg_eff, nodularity, cooling_rate
+                    ]])
                     Xs = scaler.transform(X)
                     score   = float(reg.predict(Xs)[0])
                     rej_p   = float(clf.predict_proba(Xs)[0][1]) * 100
@@ -2439,5 +2493,26 @@ elif page == "🔥 Heat Treatment":
 
 elif page == "💰 Cost Estimator":
     render_cost_estimation()
+
+elif page == "🎯 Process Optimizer":
+    render_process_optimizer()
+
+elif page == "📉 SPC Dashboard":
+    render_spc_dashboard()
+
+elif page == "💡 SHAP Explainability":
+    render_shap_explainer()
+
+elif page == "🌐 Digital Twin":
+    render_digital_twin()
+
+elif page == "🔍 Root Cause Analysis":
+    render_rca()
+
+elif page == "⚡ Energy Optimizer":
+    render_energy_optimizer()
+
+elif page == "🧬 Multi-Objective (NSGA-II)":
+    render_multi_objective()
 
 
