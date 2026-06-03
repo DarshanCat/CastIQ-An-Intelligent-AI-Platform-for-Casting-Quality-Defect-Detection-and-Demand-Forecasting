@@ -66,7 +66,7 @@ def render_production_dashboard():
             "Occurrences": [14, 8, 5, 3]
         })
         fig_pie = px.pie(defect_data, values="Occurrences", names="Defect Type",
-                         color_discrete_sequence=px.colors.sequential.Sky)
+                         color_discrete_sequence=px.colors.sequential.Blues)
         fig_pie.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",

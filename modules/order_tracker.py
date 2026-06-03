@@ -62,7 +62,7 @@ def render_order_tracker():
     fig = px.bar(df_orders, x="Progress (%)", y="Order ID", orientation="h",
                  hover_data=["Customer", "Casting Grade", "Current Stage"],
                  color="Current Stage", text="Current Stage",
-                 color_discrete_sequence=px.colors.sequential.Sky)
+                 color_discrete_sequence=px.colors.sequential.Blues)
     
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
