@@ -45,7 +45,8 @@ large_csv_path = DATA_DIR / 'casting_data_large.csv'
 if not large_csv_path.exists():
     print("\n[!] Physics-derived dataset not found. Generating now...")
     try:
-        from backend.data.generate_physics_data import N as dummy
+        import backend.data.generate_physics_data as gpd
+        gpd.generate()
     except ImportError:
         # If running as standard script, execute generate_physics_data directly
         import subprocess

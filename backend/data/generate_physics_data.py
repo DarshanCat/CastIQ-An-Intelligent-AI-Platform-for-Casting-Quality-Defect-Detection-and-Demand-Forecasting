@@ -122,8 +122,9 @@ def generate(n=N):
     print(f"  CE        : {CE.min():.2f}–{CE.max():.2f}  (optimal 4.3–4.6)")
     print(f"  G         : {G.min():.0f}–{G.max():.0f}G  (optimal 40–100G)")
     print(f"  Superheat : {SH.min():.0f}–{SH.max():.0f}°C  (optimal 60–100°C)")
-    out = BASE/'casting_physics_data.csv'
+    out = BASE/'casting_data_large.csv'
     df.to_csv(out, index=False)
+    df.to_csv(BASE/'casting_physics_data.csv', index=False)
     print(f"  Saved → {out}")
     return df
 

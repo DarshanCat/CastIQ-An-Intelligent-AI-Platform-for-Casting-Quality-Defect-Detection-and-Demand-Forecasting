@@ -1,37 +1,14 @@
+# ═══════════════════════════════════════════════════════════
+# CastIQ — VSPL AI Platform | Industrial Command Center UI
+# Vijay Spheroidals Pvt Ltd
+# Built by Darshan | CMR University | B.Tech AI & ML
+# ═══════════════════════════════════════════════════════════
+
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
-import json
-import re
-import io
-import os
+import joblib, json, re, io, os, cv2, tempfile
 from pathlib import Path
-
-# Custom lightweight .env / ,env loader for Windows compatibility
-for env_name in ['.env', ',env']:
-    env_path = Path(__file__).parent / env_name
-    if env_path.exists():
-        try:
-            with open(env_path, encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#'):
-                        key_val = line.split('=', 1)
-                        if len(key_val) == 2:
-                            k, v = key_val[0].strip(), key_val[1].strip()
-                            if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
-                                v = v[1:-1]
-                            
-                            # Automatically map common key variations to standard GEMINI_API_KEY
-                            k_norm = k.lower().replace('_', '').replace(' ', '').replace('-', '')
-                            if 'gemini' in k_norm and 'key' in k_norm:
-                                os.environ['GEMINI_API_KEY'] = v
-                            else:
-                                os.environ[k] = v
-        except Exception:
-            pass
-
 from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -39,212 +16,186 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                  Table, TableStyle, HRFlowable)
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER
 import plotly.graph_objects as go
 import plotly.express as px
 
-# Import expanded modular platforms (Modules 7 to 15)
-from modules.production_dashboard import render_production_dashboard
-from modules.inventory_tracker import render_inventory_tracker
+# ── .env loader ─────────────────────────────────────────────
+for _n in ['.env', ',env']:
+    _p = Path(__file__).parent / _n
+    if _p.exists():
+        try:
+            for _l in open(_p, encoding='utf-8'):
+                _l = _l.strip()
+                if _l and not _l.startswith('#') and '=' in _l:
+                    k, v = _l.split('=', 1)
+                    os.environ[k.strip()] = v.strip().strip('"').strip("'")
+        except Exception:
+            pass
+
+# ── Module imports ───────────────────────────────────────────
+from modules.production_dashboard   import render_production_dashboard
+from modules.inventory_tracker      import render_inventory_tracker
 from modules.predictive_maintenance import render_predictive_maintenance
-from modules.order_tracker import render_order_tracker
-from modules.heat_treatment import render_heat_treatment
-from modules.cost_estimation import render_cost_estimation
-from modules.process_optimizer import render_process_optimizer
-from modules.spc_dashboard import render_spc_dashboard
-from modules.shap_explainer import render_shap_explainer
-from modules.digital_twin import render_digital_twin
-from modules.root_cause_analysis import render_rca
-from modules.energy_optimizer import render_energy_optimizer
-from modules.multi_objective_optimizer import render_multi_objective
+from modules.order_tracker          import render_order_tracker
+from modules.heat_treatment         import render_heat_treatment
+from modules.cost_estimation        import render_cost_estimation
+from modules.diagram_generator      import render_diagram_generator
 
-st.set_page_config(page_title="VSPL AI Platform", page_icon="🏭", layout="wide")
+# ════════════════════════════════════════════════════════════
+# PAGE CONFIG  ← must be first Streamlit call, nothing before
+# ════════════════════════════════════════════════════════════
+st.set_page_config(
+    page_title="CastIQ — VSPL",
+    page_icon="🏭",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Custom premium styling for VSPL Platform
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
-
-/* Dynamic Mesh Gradient Animated Background */
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+# ════════════════════════════════════════════════════════════
+# INDUSTRIAL COMMAND CENTER CSS
+# ════════════════════════════════════════════════════════════
+st.markdown("""<style>
+/* ── Base ── */
+html,body,[data-testid="stAppViewContainer"],[data-testid="stAppViewContainer"]>.main,
+section.main>div,.block-container{
+    background:#0e1118 !important;
+    padding-top:0 !important;
 }
+.block-container{padding:20px 24px !important;max-width:100% !important;}
 
-html, body, [data-testid="stAppViewContainer"], .main {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(-45deg, #090d16, #0f172a, #1e1b4b, #0f172a) !important;
-    background-size: 400% 400% !important;
-    animation: gradientBG 20s ease infinite !important;
-    color: #e2e8f0;
+/* ── Sidebar ── */
+[data-testid="stSidebar"]{
+    background:#0b0e15 !important;
+    border-right:1px solid #1a2030 !important;
 }
+[data-testid="stSidebar"] section{padding:0 !important;}
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 600;
-    color: #f8fafc !important;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
-}
+/* hide radio widget label */
+[data-testid="stSidebar"] [data-testid="stRadio"]>label{display:none !important;}
 
-[data-testid="stSidebar"] {
-    background-image: linear-gradient(180deg, #0f172a 0%, #090d16 100%) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.04) !important;
+/* radio items */
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"]{gap:0 !important;}
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label{
+    padding:7px 10px 7px 14px !important;
+    margin:0 6px !important;
+    border-radius:5px !important;
+    font-size:12px !important;
+    color:#4a6070 !important;
+    background:transparent !important;
+    border:none !important;
+    cursor:pointer !important;
+    transition:all .12s !important;
+    display:flex !important;
+    align-items:center !important;
 }
-
-/* Glassmorphic Metrics Cards with Neon Accent Indicators */
-[data-testid="stMetric"] {
-    background: rgba(30, 41, 59, 0.35) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    border-radius: 16px !important;
-    padding: 16px 20px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-bottom: 3px solid #0284c7 !important;
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:hover{
+    background:#111722 !important;
+    color:#8aa0b0 !important;
 }
-[data-testid="stMetric"]:hover {
-    transform: translateY(-4px) !important;
-    border-bottom-color: #38bdf8 !important;
-    box-shadow: 0 12px 40px 0 rgba(2, 132, 199, 0.2) !important;
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label[data-baseweb]{
+    display:flex !important;
 }
-
-[data-testid="stMetricValue"] {
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 700;
-    font-size: 2.2rem !important;
-    color: #38bdf8 !important;
-}
-[data-testid="stMetricLabel"] {
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 500;
-    font-size: 0.9rem !important;
-    color: #94a3b8 !important;
+[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label p{
+    color:inherit !important;
+    font-size:12px !important;
+    margin:0 !important;
 }
 
-/* Premium Module Cards */
-.module-card {
-    background: rgba(30, 41, 59, 0.35) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-radius: 16px !important;
-    padding: 24px !important;
-    margin-bottom: 16px !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* ── Topbar area ── */
+[data-testid="stHeader"]{background:#0b0e15 !important;border-bottom:1px solid #1a2030 !important;}
+
+/* ── Metrics ── */
+[data-testid="metric-container"]{
+    background:#111722 !important;
+    border:1px solid #1a2030 !important;
+    border-top:2px solid #c9a84c !important;
+    border-radius:6px !important;
+    padding:14px 16px !important;
 }
-.module-card:hover {
-    transform: translateY(-6px) !important;
-    border-color: rgba(56, 189, 248, 0.35) !important;
-    box-shadow: 0 16px 48px 0 rgba(56, 189, 248, 0.15) !important;
+[data-testid="stMetricLabel"] p{
+    color:#4a6070 !important;font-size:10px !important;
+    font-weight:600 !important;text-transform:uppercase;letter-spacing:1px;
+}
+[data-testid="stMetricValue"]{color:#e8eef5 !important;font-size:22px !important;font-weight:600 !important;}
+[data-testid="stMetricDelta"] svg{display:none;}
+[data-testid="stMetricDelta"]>div{font-size:10px !important;color:#4a6070 !important;}
+
+/* ── Buttons ── */
+.stButton>button{
+    background:#c9a84c !important;color:#0b0e15 !important;
+    border:none !important;border-radius:5px !important;
+    font-weight:700 !important;font-size:12px !important;
+    padding:8px 18px !important;letter-spacing:.3px;
+    transition:all .12s !important;
+}
+.stButton>button:hover{background:#d4b86a !important;transform:translateY(-1px) !important;}
+.stButton>button[kind="secondary"]{
+    background:#111722 !important;color:#8aa0b0 !important;
+    border:1px solid #1a2030 !important;
+}
+.stButton>button[kind="secondary"]:hover{background:#1a2030 !important;}
+
+/* ── Download ── */
+[data-testid="stDownloadButton"] button{
+    background:#111722 !important;color:#c9a84c !important;
+    border:1px solid #c9a84c44 !important;border-radius:5px !important;
 }
 
-/* High-tech Button Styling */
-div.stButton > button:first-child {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-    color: white !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 600 !important;
-    border: none !important;
-    padding: 10px 24px !important;
-    border-radius: 8px !important;
-    transition: all 0.25s ease-in-out !important;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+/* ── Inputs ── */
+input,textarea,
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stTextArea"] textarea{
+    background:#111722 !important;border:1px solid #1a2030 !important;
+    border-radius:5px !important;color:#e8eef5 !important;font-size:13px !important;
 }
-div.stButton > button:first-child:hover {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45) !important;
+input:focus,textarea:focus{
+    border-color:#c9a84c66 !important;
+    box-shadow:0 0 0 2px #c9a84c18 !important;outline:none !important;
 }
-div.stButton > button:first-child:active {
-    transform: translateY(0px) !important;
+[data-testid="stSelectbox"]>div>div{
+    background:#111722 !important;border:1px solid #1a2030 !important;
+    border-radius:5px !important;color:#e8eef5 !important;
 }
 
-/* Futuristic Inputs */
-[data-testid="stFileUploader"] {
-    background: rgba(30, 41, 59, 0.2) !important;
-    border: 2px dashed rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
-    padding: 16px !important;
-}
-.stTextInput input, .stTextArea textarea, .stSelectbox [data-baseweb="select"] {
-    background-color: rgba(15, 23, 42, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: #f1f5f9 !important;
-    border-radius: 8px !important;
-    transition: all 0.3s ease !important;
-}
-.stTextInput input:focus, .stTextArea textarea:focus {
-    border-color: #38bdf8 !important;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;
-}
+/* ── Slider ── */
+[data-testid="stSlider"] [role="slider"]{background:#c9a84c !important;border:2px solid #c9a84c !important;}
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.3);
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(56, 189, 248, 0.3);
-}
+/* ── Tabs ── */
+[role="tablist"]{border-bottom:1px solid #1a2030 !important;}
+[role="tab"]{color:#4a6070 !important;font-size:12px !important;border:none !important;background:transparent !important;padding:8px 14px !important;}
+[role="tab"][aria-selected="true"]{color:#c9a84c !important;border-bottom:2px solid #c9a84c !important;background:transparent !important;}
 
-/* Mobile Responsive CSS Overrides */
-@media (max-width: 768px) {
-    /* Shrunk Metrics layout */
-    [data-testid="stMetric"] {
-        padding: 10px 12px !important;
-        border-radius: 12px !important;
-        margin-bottom: 12px !important;
-    }
-    [data-testid="stMetricValue"] {
-        font-size: 1.4rem !important;
-    }
-    [data-testid="stMetricLabel"] {
-        font-size: 0.8rem !important;
-    }
-    
-    /* Module Cards layout */
-    .module-card {
-        padding: 16px !important;
-        margin-bottom: 12px !important;
-    }
-    .module-card h3 {
-        font-size: 1.1rem !important;
-    }
-    .module-card p {
-        font-size: 0.8rem !important;
-        margin-top: 6px !important;
-    }
-    
-    /* Touch buttons layout */
-    div.stButton > button:first-child {
-        width: 100% !important;
-        padding: 12px 20px !important;
-    }
-    
-    /* Typography scaling */
-    h1 {
-        font-size: 1.8rem !important;
-    }
-    h2 {
-        font-size: 1.5rem !important;
-    }
-    h3 {
-        font-size: 1.2rem !important;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
+/* ── Dataframe ── */
+[data-testid="stDataFrame"]{border:1px solid #1a2030 !important;border-radius:6px !important;overflow:hidden;}
 
+/* ── Alerts ── */
+[data-testid="stAlert"]{background:#111722 !important;border:1px solid #1a2030 !important;border-radius:6px !important;}
+[data-testid="stAlert"][kind="success"]{border-left:3px solid #4ade80 !important;}
+[data-testid="stAlert"][kind="warning"]{border-left:3px solid #c9a84c !important;}
+[data-testid="stAlert"][kind="error"]  {border-left:3px solid #f87171 !important;}
+[data-testid="stAlert"][kind="info"]   {border-left:3px solid #60a5fa !important;}
+
+/* ── File uploader ── */
+[data-testid="stFileUploader"]{background:#111722 !important;border:1px dashed #1a2030 !important;border-radius:6px !important;}
+
+/* ── Expander ── */
+[data-testid="stExpander"]{background:#111722 !important;border:1px solid #1a2030 !important;border-radius:6px !important;}
+
+/* ── Text ── */
+h1{color:#e8eef5 !important;font-size:20px !important;font-weight:600 !important;letter-spacing:.3px;}
+h2{color:#c8d8e8 !important;font-size:16px !important;font-weight:500 !important;}
+h3{color:#8aa0b0 !important;font-size:13px !important;font-weight:500 !important;}
+p,.stMarkdown p{color:#4a6070 !important;font-size:13px !important;}
+hr{border-color:#1a2030 !important;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:#0e1118;}
+::-webkit-scrollbar-thumb{background:#1a2030;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#c9a84c44;}
+</style>""", unsafe_allow_html=True)
 
 BASE      = Path(__file__).parent
 MODEL_DIR = BASE / 'backend' / 'models'
@@ -924,141 +875,469 @@ body { margin: 0; padding: 0; overflow: hidden; }
 </style>
 """, height=110)
 
-st.sidebar.markdown("---")
+with st.sidebar:
+    _key = os.environ.get("GEMINI_API_KEY","")
+    st.markdown(f"""
+<div style="padding:16px 14px 0">
+  <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;
+              border-bottom:2px solid #c9a84c">
+    <div style="width:34px;height:34px;background:#c9a84c;border-radius:4px;
+                display:flex;align-items:center;justify-content:center;
+                font-size:16px;font-weight:700;color:#0b0e15;flex-shrink:0">C</div>
+    <div>
+      <div style="color:#e8eef5;font-size:14px;font-weight:700;letter-spacing:.5px">CastIQ</div>
+      <div style="color:#4a6070;font-size:9px;letter-spacing:1.5px;margin-top:1px">VSPL · AI PLATFORM</div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
-page = st.sidebar.radio("Navigation", [
-    "🏠 Dashboard",
-    "🔮 Casting Quality Predictor",
-    "🎯 Process Optimizer",
-    "📉 SPC Dashboard",
-    "💡 SHAP Explainability",
-    "📊 Demand Forecasting",
-    "⚗️ Alloy Recommendation",
-    "📄 RFQ Intelligence",
-    "🤖 Smart Assistant",
-    "📷 CV Defect Detector",
-    "🏭 Production Dashboard",
-    "📦 Inventory Tracker",
-    "🔧 Predictive Maintenance",
-    "🚚 Order Tracker",
-    "🔥 Heat Treatment",
-    "💰 Cost Estimator",
-    "🧠 Deep Learning Hub",
-    "🌐 Digital Twin",
-    "🔍 Root Cause Analysis",
-    "⚡ Energy Optimizer",
-    "🧬 Multi-Objective (NSGA-II)",
-], label_visibility="collapsed")
+    def _sec(label):
+        st.markdown(f'<div style="color:#2a3a4a;font-size:8px;font-weight:700;letter-spacing:2px;padding:10px 14px 3px;text-transform:uppercase">{label}</div>', unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("**Module Status**")
-for label, status in [
-    ("🔮 Module 1", "✅ Live"), ("📊 Module 2", "✅ Live"),
-    ("⚗️ Module 3", "✅ Live"), ("📄 Module 4", "✅ Live"),
-    ("🤖 Module 5", "✅ Gemini API"), ("📷 Module 6", "✅ CNN Live"),
-    ("🏭 Module 7", "✅ Live Yields"), ("📦 Module 8", "✅ Ledger Live"),
-    ("🔧 Module 9", "✅ Diagnostics"), ("🚚 Module 10", "✅ Pipeline"),
-    ("🔥 Module 11", "✅ Cycles"), ("💰 Module 12", "✅ Calculator"),
-    ("🎯 Module 13", "✅ Optimizer"), ("📉 Module 14", "✅ SPC Live"),
-    ("💡 Module 15", "✅ SHAP Explainer"),
-    ("🌐 Module 16", "✅ Twin Live"), ("🔍 Module 17", "✅ RCA Diagnosed"),
-    ("⚡ Module 18", "✅ Energy Live"), ("🧬 Module 19", "✅ NSGA-II Pareto"),
-]:
-    st.sidebar.markdown(f"{label} &nbsp; {status}")
+    _sec("Overview")
+    page = st.radio("nav", [
+        "🏠 Dashboard",
+        "🔮 Quality Predictor",
+        "📊 Demand Forecast",
+        "⚗️ Alloy Advisor",
+        "📄 RFQ Intelligence",
+        "📷 CV Defect Detector",
+        "🤖 Smart Assistant",
+        "🏭 Production",
+        "📦 Inventory",
+        "🚚 Orders",
+        "🔧 Maintenance",
+        "🔥 Heat Treatment",
+        "💰 Cost Estimator",
+    "✏️ Diagram Generator",
+    ], label_visibility="collapsed")
 
-# In-app API Key configuration
-env_key = os.environ.get("GEMINI_API_KEY", "")
-if not env_key:
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**🔑 API Key Setup**")
-    user_key = st.sidebar.text_input("Enter GEMINI_API_KEY:", type="password", help="Paste your Gemini API key here. It will only be stored in your current session.")
-    if user_key:
-        st.session_state["GEMINI_API_KEY"] = user_key
+    st.markdown('<div style="height:1px;background:#1a2030;margin:8px 0"></div>', unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
-st.sidebar.caption("Built by Darshan · CMR University · B.Tech AI & ML")
+    # API key
+    if _key:
+        st.markdown('<div style="margin:0 8px 8px;padding:7px 10px;background:#0a1a10;border:1px solid #1a3a20;border-radius:5px;font-size:10px;color:#4ade80;font-weight:600">⬤ GEMINI CONNECTED</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="padding:0 8px 3px;font-size:10px;color:#4a6070;font-weight:600;letter-spacing:.5px">API KEY</div>', unsafe_allow_html=True)
+        _uk = st.text_input("k", type="password", placeholder="Paste Gemini key...", label_visibility="collapsed")
+        if _uk:
+            os.environ["GEMINI_API_KEY"] = _uk
+            _key = _uk
+            st.success("Connected!")
 
-# ==============================================================
-# PAGE 0 - DASHBOARD
-# ==============================================================
+    # System status
+    st.markdown(f"""
+<div style="padding:8px 14px 14px">
+  <div style="color:#2a3a4a;font-size:8px;font-weight:700;letter-spacing:2px;margin-bottom:8px">SYSTEM STATUS</div>
+  {''.join([
+    f'<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">'
+    f'<span style="color:#4a6070;font-size:10px">{name}</span>'
+    f'<span style="color:{col};font-size:9px;font-weight:700">⬤ {status}</span>'
+    f'</div>'
+    for name, col, status in [
+        ("ML Models",  "#4ade80", "LIVE"),
+        ("YOLOv8",     "#4ade80", "READY"),
+        ("Gemini AI",  "#4ade80" if _key else "#c9a84c", "ONLINE" if _key else "NO KEY"),
+        ("PDF Engine", "#4ade80", "READY"),
+        ("12 Modules", "#4ade80", "ACTIVE"),
+    ]
+  ])}
+  <div style="height:1px;background:#1a2030;margin:10px 0 8px"></div>
+  <div style="font-size:9px;color:#2a3a4a;line-height:1.8">
+    DARSHAN<br>CMR UNIVERSITY<br>B.TECH AI &amp; ML · 2025–26
+  </div>
+</div>""", unsafe_allow_html=True)
+
+# ── Page header helper ─────────────────────────────────────
+def page_header(icon, title, subtitle, tag=None, tag_color="#c9a84c"):
+    tag_html = ""
+    if tag:
+        tag_html = f'<span style="background:{tag_color}18;color:{tag_color};font-size:9px;font-weight:700;padding:3px 9px;border-radius:3px;border:1px solid {tag_color}33;letter-spacing:1px;margin-left:10px">{tag}</span>'
+    st.markdown(f"""
+<div style="background:#0b0e15;border-bottom:2px solid #c9a84c;
+            padding:16px 0 14px;margin-bottom:22px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="width:4px;height:30px;background:#c9a84c;border-radius:2px;flex-shrink:0"></div>
+    <div style="font-size:22px">{icon}</div>
+    <div>
+      <div style="display:flex;align-items:center">
+        <span style="color:#e8eef5;font-size:17px;font-weight:700;letter-spacing:.3px">{title}</span>
+        {tag_html}
+      </div>
+      <div style="color:#4a6070;font-size:11px;margin-top:3px;letter-spacing:.3px">{subtitle}</div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+# ── Module card helper ─────────────────────────────────────
+def mod_card(icon, title, desc, tag, tc):
+    return f"""<div style="background:#111722;border:1px solid #1a2030;border-top:2px solid {tc};
+                            border-radius:6px;padding:14px;height:100%">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+    <span style="font-size:20px">{icon}</span>
+    <span style="background:{tc}18;color:{tc};font-size:8px;font-weight:700;
+                 padding:2px 7px;border-radius:3px;letter-spacing:1px;border:1px solid {tc}30">{tag}</span>
+  </div>
+  <div style="color:#c8d8e8;font-size:12px;font-weight:600;margin-bottom:4px">{title}</div>
+  <div style="color:#4a6070;font-size:10px;line-height:1.5">{desc}</div>
+</div>"""
+
+
+# ════════════════════════════════════════════════════════════
+# DASHBOARD
+# ════════════════════════════════════════════════════════════
 if page == "🏠 Dashboard":
-    st.title("🏭 VSPL AI Intelligence Platform")
-    st.markdown("##### AI-powered manufacturing intelligence for Vijay Spheroidals Pvt Ltd")
-    st.markdown("---")
+    page_header("🏭","CastIQ — AI Intelligence Platform",
+                "Vijay Spheroidals Pvt Ltd  ·  Peenya Industrial Area, Bengaluru  ·  ISO 9001:2015",
+                "12 MODULES ACTIVE","#c9a84c")
 
-    c1,c2,c3,c4,c5 = st.columns(5)
-    c1.metric("Monthly Capacity",  "200 Tonnes")
-    c2.metric("Alloy Grades",      "6 Grades")
-    c3.metric("Industry Sectors",  "5+")
-    c4.metric("Classifier Acc.",   "85.4%")
-    c5.metric("Recommender Acc.",  "94.5%")
+    # KPI row
+    k1,k2,k3,k4,k5,k6 = st.columns(6)
+    k1.metric("Monthly Output",   "200 T",   "+4.2% this month")
+    k2.metric("Classifier Acc.",  "85.4%",   "Gradient Boosting")
+    k3.metric("Recommender Acc.", "94.5%",   "Random Forest")
+    k4.metric("Active Orders",    "6",       "1 on hold")
+    k5.metric("Stock Alerts",     "2",       "Reorder needed")
+    k6.metric("Sectors Served",   "6",       "Industries")
 
-    st.markdown("---")
-    st.subheader("⚡ Platform Modules")
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-    modules = [
-        ("🔮", "Casting Quality Predictor",
-         "Predicts reject probability & quality score before every pour. Input 7 parameters → instant AI verdict + downloadable PDF report."),
-        ("🎯", "Process Optimizer",
-         "Inverse ML using scipy's Differential Evolution. Set your target quality → AI searches 11D parameters & computes the exact recipe."),
-        ("📉", "SPC Dashboard",
-         "Statistical Process Control charts (Xbar, CUSUM) with automatic Nelson rule violation alerts, batch drift, and Cpk metrics."),
-        ("💡", "SHAP Explainability",
-         "Full explanation center with Single Cast waterfalls, Global Feature Importance bar charts, and side-by-side comparative views."),
-        ("🌐", "Digital Twin",
-         "Physics simulation of the actual casting process. Simulates cooling curves (latent heat plateaus), nodularity decay, and G-force distributions."),
-        ("🔍", "Root Cause Analysis",
-         "Input a failed batch → AI runs SHAP and 7 physics rules to identify defect types (porosity, cold shuts, poor nodularity) and provide corrective actions."),
-        ("⚡", "Energy Optimizer",
-         "Furnace energy model prioritizing minimum pour temperatures to optimize quality and cut down energy costs (₹3,000–15,000/month)."),
-        ("🧬", "Multi-Objective (NSGA-II)",
-         "Optimize Quality, Cost, and Delivery simultaneously using NSGA-II. Renders an interactive 3D Pareto front of optimal solutions."),
-        ("📊", "Demand Forecasting",
-         "6-month order forecasting across 5 sectors with confidence intervals, historical trends, and sector comparison charts."),
-        ("⚗️", "Alloy Recommendation Engine",
-         "Provide application specs → AI recommends optimal ductile iron grade with full composition and confidence scores."),
-        ("📄", "RFQ Intelligence",
-         "Paste any customer RFQ → AI extracts specs, recommends grade, and generates a formatted downloadable quotation instantly."),
-        ("🤖", "Smart Assistant (Gemini AI)",
-         "Powered by Google Gemini API. Answers any VSPL metallurgy or platform question intelligently using custom knowledge base context."),
-        ("📷", "CV Defect Detector",
-         "Uses custom CNN / YOLOv8 computer vision models to identify surface casting defects (cracks, blowholes, shrinkage) in real-time."),
-        ("🏭", "Production Dashboard",
-         "Real-time centrifugal pipe manufacturing yields, melting power efficiencies, and historical ladle heats."),
-        ("📦", "Inventory Tracker",
-         "Alloy stock ledger for base metals and critical raw supplies. Highlights safety shortfalls and commits transactions."),
-        ("🔧", "Predictive Maintenance",
-         "Diagnostics cockpit monitoring temperature, vibration, and runout anomalies to forecast Remaining Useful Life."),
-        ("🚚", "Order Tracker",
-         "Interactive order process pipeline tracking milestones from initial melting to final ex-works dispatch."),
-        ("🔥", "Heat Treatment Simulator",
-         "Custom thermal cycle simulator predicting microstructural phases (Ferrite, Pearlite) and mechanical tensile strengths."),
-        ("💰", "Cost Estimator",
-         "Geometric casting weight calculator and commercial ex-works cost quotation breakdown based on dimensions."),
-        ("🧠", "Deep Learning & LLM Hub",
-         "Workspace for engineers to download the 50k casting runs database, train PyTorch Multi-Task DNNs, and run local GPT LLMs."),
+    # Section divider helper
+    def section_label(text):
+        st.markdown(f'<div style="color:#2a3a4a;font-size:9px;font-weight:700;letter-spacing:2px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1a2030">{text}</div>', unsafe_allow_html=True)
+
+    section_label("⚡ AI QUALITY MODULES")
+    c1,c2,c3,c4,c5,c6 = st.columns(6)
+    c1.markdown(mod_card("🔮","Quality Predictor","Predict reject % before every pour. Batch upload + PDF.","ML MODEL","#60a5fa"), unsafe_allow_html=True)
+    c2.markdown(mod_card("📊","Demand Forecast","6-month sector forecast with confidence intervals.","PROPHET","#34d399"), unsafe_allow_html=True)
+    c3.markdown(mod_card("⚗️","Alloy Advisor","Input specs → optimal ductile iron grade.","94.5% ACC","#a78bfa"), unsafe_allow_html=True)
+    c4.markdown(mod_card("📄","RFQ Intelligence","Parse customer email → auto-generate quote.","NLP","#f87171"), unsafe_allow_html=True)
+    c5.markdown(mod_card("📷","CV Defect Detector","YOLOv8 defect detection via image or webcam.","YOLOv8","#f97316"), unsafe_allow_html=True)
+    c6.markdown(mod_card("🤖","Smart Assistant","Google Gemini answers any VSPL question.","GEMINI","#c9a84c"), unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    section_label("🏭 OPERATIONS MODULES")
+    o1,o2,o3,o4,o5,o6 = st.columns(6)
+    o1.markdown(mod_card("🏭","Production","Shift-wise output, 30-day trends, operator stats.","LIVE","#06b6d4"), unsafe_allow_html=True)
+    o2.markdown(mod_card("📦","Inventory","Raw material stock levels and reorder PO generator.","STOCK","#34d399"), unsafe_allow_html=True)
+    o3.markdown(mod_card("🚚","Orders","End-to-end pipeline — received to delivery.","CRM","#60a5fa"), unsafe_allow_html=True)
+    o4.markdown(mod_card("🔧","Maintenance","8-machine fleet health. Predict failures early.","AI PRED","#f59e0b"), unsafe_allow_html=True)
+    o5.markdown(mod_card("🔥","Heat Treatment","Recommended heat cycles + downloadable certs.","PROCESS","#f97316"), unsafe_allow_html=True)
+    o6.markdown(mod_card("💰","Cost Estimator","Full cost breakdown — material to margin + PDF.","PRICING","#c9a84c"), unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    section_label("🧩 AI TOOLS")
+    t1,t2 = st.columns(6)[:2]
+    t1.markdown(mod_card("✏️","Diagram Generator","Text prompt → AI generates SVG process/defect/mold diagrams.","GEMINI SVG","#a78bfa"), unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # Status bar
+    st.markdown("""
+<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;
+            background:#0b0e15;border:1px solid #1a2030;border-radius:6px">
+  <span style="font-size:9px;color:#2a3a4a;font-weight:700;letter-spacing:1.5px;
+               margin-right:4px;align-self:center">SYSTEM</span>
+  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
+               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ 12 MODULES</span>
+  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
+               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ YOLOv8</span>
+  <span style="background:#1a1a08;border:1px solid #3a3010;border-radius:3px;
+               padding:4px 10px;font-size:10px;color:#c9a84c;font-weight:600">⬤ GEMINI AI</span>
+  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
+               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ PDF REPORTS</span>
+  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
+               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ ISO 9001:2015</span>
+</div>""", unsafe_allow_html=True)
+
+# DASHBOARD
+# ══════════════════════════════════════════════════════════════
+if page == "🏠  Dashboard":
+    page_header("🏭", "CastIQ — AI Intelligence Platform",
+                "Vijay Spheroidals Pvt Ltd · Peenya Industrial Area, Bengaluru · ISO 9001:2015")
+
+    # KPIs
+    k1,k2,k3,k4,k5,k6 = st.columns(6)
+    k1.metric("Monthly Capacity",  "200 T",   "Tonnes/month")
+    k2.metric("AI Modules",        "12",      "Active & live")
+    k3.metric("Classifier Acc.",   "85.4%",   "+2.1% vs baseline")
+    k4.metric("Recommender Acc.",  "94.5%",   "Alloy model")
+    k5.metric("Active Orders",     "6",       "1 on hold")
+    k6.metric("Stock Alerts",      "2",       "Reorder needed")
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+
+    def module_card(icon, title, desc, tag, tag_color, icon_bg):
+        return f"""
+<div style="background:#111d2e;border:1px solid #1e2d45;border-radius:12px;
+            padding:18px;cursor:pointer;transition:border-color 0.15s"
+     onmouseover="this.style.borderColor='#2a3d55'"
+     onmouseout="this.style.borderColor='#1e2d45'">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+    <div style="width:38px;height:38px;background:{icon_bg};border-radius:8px;
+                display:flex;align-items:center;justify-content:center;font-size:18px">{icon}</div>
+    <span style="background:{tag_color}18;color:{tag_color};font-size:9px;font-weight:600;
+                 padding:3px 8px;border-radius:20px;border:1px solid {tag_color}30;
+                 letter-spacing:0.8px">{tag}</span>
+  </div>
+  <div style="color:#c8d8e8;font-size:13px;font-weight:500;margin-bottom:5px">{title}</div>
+  <div style="color:#5a7a96;font-size:11px;line-height:1.55">{desc}</div>
+</div>"""
+
+    # AI Quality group
+    st.markdown("<div style='color:#3d5166;font-size:10px;font-weight:600;letter-spacing:2px;margin-bottom:12px'>⚡ AI QUALITY MODULES</div>", unsafe_allow_html=True)
+    c1,c2,c3 = st.columns(3)
+    with c1:
+        st.markdown(module_card("🔮","Quality Predictor",
+            "Predict reject % before every pour. Batch upload + PDF report.",
+            "ML MODEL","#60a5fa","#0c2240"), unsafe_allow_html=True)
+        st.markdown(module_card("📄","RFQ Intelligence",
+            "Parse customer email → auto-generate a formatted quote instantly.",
+            "NLP","#a78bfa","#1a0f40"), unsafe_allow_html=True)
+    with c2:
+        st.markdown(module_card("📊","Demand Forecasting",
+            "6-month sector forecast with confidence bands and trend analysis.",
+            "PROPHET","#34d399","#0a2a1f"), unsafe_allow_html=True)
+        st.markdown(module_card("📷","CV Defect Detector",
+            "YOLOv8 surface defect detection via image upload or live webcam.",
+            "YOLOv8","#f87171","#2a0f0f"), unsafe_allow_html=True)
+    with c3:
+        st.markdown(module_card("⚗️","Alloy Advisor",
+            "Input application specs → AI recommends optimal ductile iron grade.",
+            "94.5% ACC","#34d399","#0a2a1f"), unsafe_allow_html=True)
+        st.markdown(module_card("🤖","Smart Assistant",
+            "Google Gemini answers any VSPL product or process question intelligently.",
+            "GEMINI AI","#c9a84c","#2a1f08"), unsafe_allow_html=True)
+
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+    # Operations group
+    st.markdown("<div style='color:#3d5166;font-size:10px;font-weight:600;letter-spacing:2px;margin-bottom:12px'>🏭 OPERATIONS MODULES</div>", unsafe_allow_html=True)
+    c4,c5,c6 = st.columns(3)
+    with c4:
+        st.markdown(module_card("🏭","Production Dashboard",
+            "Shift-wise output tracking, operator performance and 30-day trends.",
+            "LIVE DATA","#06b6d4","#052a35"), unsafe_allow_html=True)
+        st.markdown(module_card("🚚","Order Tracker",
+            "Full order pipeline from received to delivery. Kanban view + analytics.",
+            "CRM","#60a5fa","#0c2240"), unsafe_allow_html=True)
+    with c5:
+        st.markdown(module_card("📦","Inventory Tracker",
+            "Live raw material stock levels, low-stock alerts and reorder PO generator.",
+            "LIVE STOCK","#34d399","#0a2a1f"), unsafe_allow_html=True)
+        st.markdown(module_card("🔥","Heat Treatment",
+            "AI-recommended heat treatment cycles per grade with official certificates.",
+            "PROCESS","#f97316","#2a1508"), unsafe_allow_html=True)
+    with c6:
+        st.markdown(module_card("🔧","Predictive Maintenance",
+            "8-machine fleet health monitoring. Predict failures before downtime.",
+            "AI PREDICT","#f59e0b","#2a1a05"), unsafe_allow_html=True)
+        st.markdown(module_card("💰","Cost Estimator",
+            "Full cost breakdown: material + machining + overhead + margin. PDF included.",
+            "PRICING","#c9a84c","#2a1f08"), unsafe_allow_html=True)
+
+    # Status bar
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    st.markdown("""
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
+              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
+    <span style="color:#4ade80;font-size:8px">●</span> 12 modules active
+  </div>
+  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
+              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
+    <span style="color:#4ade80;font-size:8px">●</span> YOLOv8 pretrained
+  </div>
+  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
+              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
+    <span style="color:#c9a84c;font-size:8px">●</span> Gemini API integration
+  </div>
+  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
+              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
+    <span style="color:#4ade80;font-size:8px">●</span> ISO 9001:2015
+  </div>
+  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
+              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
+    <span style="color:#4ade80;font-size:8px">●</span> ReportLab PDF export
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+    # ── GROUP 1: AI Quality ──────────────────────────────────
+    st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:4px'>⚡ AI QUALITY</div>", unsafe_allow_html=True)
+    page = st.radio("Navigation", [
+        "🏠 Dashboard",
+        "🔮 Casting Quality Predictor",
+        "📊 Demand Forecasting",
+        "⚗️ Alloy Recommendation",
+        "📄 RFQ Intelligence",
+        "🤖 Smart Assistant",
+        "📷 CV Defect Detector",
+        "🏭 Production Dashboard",
+        "📦 Inventory Tracker",
+        "🔧 Predictive Maintenance",
+        "🚚 Order Tracker",
+        "🔥 Heat Treatment",
+        "💰 Cost Estimator",
+    "✏️ Diagram Generator",
+    ], label_visibility="collapsed")
+
+    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:14px 0'></div>", unsafe_allow_html=True)
+
+    # ── API Key ──────────────────────────────────────────────
+    env_key = os.environ.get("GEMINI_API_KEY", "")
+    if not env_key:
+        st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px'>🔑 API KEY</div>", unsafe_allow_html=True)
+        user_key = st.text_input("Gemini API Key", type="password",
+                                  placeholder="Paste key here...",
+                                  label_visibility="collapsed")
+        if user_key:
+            os.environ["GEMINI_API_KEY"] = user_key
+            st.success("✅ Key set!")
+    else:
+        st.markdown("<div style='color:#22c55e; font-size:11px'>✅ Gemini API Connected</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:10px 0'></div>", unsafe_allow_html=True)
+
+    # ── Module status pills ──────────────────────────────────
+    st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:8px'>📡 MODULE STATUS</div>", unsafe_allow_html=True)
+    statuses = [
+        ("🔮","Quality","Live"),("📊","Forecast","Live"),("⚗️","Alloy","Live"),
+        ("📄","RFQ","Live"),("🤖","Assistant","Gemini"),("📷","CV Defect","YOLOv8"),
+        ("🏭","Production","Live"),("📦","Inventory","Live"),("🔧","Maintenance","Live"),
+        ("🚚","Orders","Live"),("🔥","Heat Tx","Live"),("💰","Cost","Live"),
     ]
     cols = st.columns(2)
-    for i, (icon, title, desc) in enumerate(modules):
-        with cols[i % 2]:
-            st.markdown(f"""
-            <div class="module-card">
-                <h3 style='margin:0'>{icon} {title}</h3>
-                <p style='margin:8px 0 0;color:#cbd5e1;font-size:14px'>{desc}</p>
-            </div>""", unsafe_allow_html=True)
+    for i, (icon, name, status) in enumerate(statuses):
+        color = "#22c55e" if status in ("Live","Gemini","YOLOv8") else "#f59e0b"
+        cols[i%2].markdown(
+            f"<div style='font-size:10px;padding:2px 0;color:#aab'>{icon} {name} "
+            f"<span style='color:{color}'>● {status}</span></div>",
+            unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.subheader("🏗️ Tech Stack")
-    t1,t2,t3,t4 = st.columns(4)
-    t1.info("**Frontend**\nStreamlit · Custom Glassmorphic CSS\nPlotly Visuals")
-    t2.info("**ML & CV Models**\nGradient Boosting · Random Forest\nProphet · CNN / YOLOv8")
-    t3.info("**AI & Real-Time Data**\nGoogle Gemini API (gemini-2.5-flash)\nLive IoT Telemetry Streaming")
-    t4.info("**Reports**\nReportLab PDF Reports\nCSV Batch Exports")
+    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:10px 0'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#c9a84c66;font-size:10px;text-align:center'>Built by Darshan · CMR University<br>B.Tech AI & ML 2025–26</div>", unsafe_allow_html=True)
 
-# ==============================================================
-# MODULE 1 - CASTING QUALITY PREDICTOR (+ Batch + PDF)
-# ==============================================================
-elif page == "🔮 Casting Quality Predictor":
+
+# ══════════════════════════════════════════════════════════════
+# DASHBOARD PAGE — Navy + Gold UI
+# ══════════════════════════════════════════════════════════════
+if page == "🏠 Dashboard":
+    # Hero
+    st.markdown("""
+<div style='background:linear-gradient(135deg,#0d1f35 0%,#112240 60%,#0a1628 100%);
+            border:1px solid #c9a84c44; border-radius:16px; padding:32px 36px; margin-bottom:24px;
+            box-shadow:0 8px 32px rgba(201,168,76,0.12)'>
+    <div style='display:flex;align-items:center;gap:16px'>
+        <div style='font-size:52px'>🏭</div>
+        <div>
+            <h1 style='margin:0;font-size:28px;color:#c9a84c;letter-spacing:1px'>CastIQ — AI Intelligence Platform</h1>
+            <p style='margin:4px 0 0;color:#8899bb;font-size:14px'>
+                Vijay Spheroidals Pvt Ltd &nbsp;|&nbsp; Peenya Industrial Area, Bengaluru &nbsp;|&nbsp; ISO 9001:2015
+            </p>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # KPIs
+    k1,k2,k3,k4,k5,k6 = st.columns(6)
+    k1.metric("Monthly Capacity", "200 T",    "Tonnes/month")
+    k2.metric("AI Modules",       "12",       "Active")
+    k3.metric("Classifier Acc.",  "85.4%",    "+2.1% vs baseline")
+    k4.metric("Recommender Acc.", "94.5%",    "Alloy model")
+    k5.metric("Sectors Served",   "6",        "Industries")
+    k6.metric("Alloy Grades",     "6",        "Available")
+
+    st.markdown("<div style='border-bottom:1px solid #c9a84c33;margin:20px 0'></div>", unsafe_allow_html=True)
+
+    # Module cards — grouped
+    def module_card(icon, title, desc, tag, tag_color="#22c55e"):
+        return f"""
+<div style='background:linear-gradient(135deg,#0d1f35,#112240);
+            border:1px solid #c9a84c33; border-radius:14px; padding:20px;
+            margin-bottom:12px; transition:all 0.2s;
+            box-shadow:0 4px 16px rgba(0,0,0,0.3)'>
+    <div style='display:flex;justify-content:space-between;align-items:flex-start'>
+        <div style='font-size:26px'>{icon}</div>
+        <span style='background:{tag_color}22;color:{tag_color};
+                     font-size:9px;font-weight:700;padding:3px 8px;
+                     border-radius:20px;letter-spacing:1px;border:1px solid {tag_color}44'>{tag}</span>
+    </div>
+    <div style='color:#d4b86a;font-weight:700;font-size:15px;margin:8px 0 4px'>{title}</div>
+    <div style='color:#8899aa;font-size:12px;line-height:1.5'>{desc}</div>
+</div>"""
+
+    st.markdown("### 🤖 AI Quality Modules")
+    c1,c2,c3 = st.columns(3)
+    with c1:
+        st.markdown(module_card("🔮","Casting Quality Predictor",
+            "Predict reject probability & quality score before every pour. Batch upload + PDF report.",
+            "ML MODEL","#22c55e"), unsafe_allow_html=True)
+        st.markdown(module_card("📄","RFQ Intelligence",
+            "Paste any customer email → AI extracts specs and generates a formatted quote instantly.",
+            "NLP + AI","#a855f7"), unsafe_allow_html=True)
+    with c2:
+        st.markdown(module_card("📊","Demand Forecasting",
+            "6-month sector-wise order forecasting with confidence intervals and trend analysis.",
+            "PROPHET","#3b82f6"), unsafe_allow_html=True)
+        st.markdown(module_card("🤖","Smart Assistant",
+            "Powered by Google Gemini. Answers any VSPL question using the full knowledge base.",
+            "GEMINI AI","#f59e0b"), unsafe_allow_html=True)
+    with c3:
+        st.markdown(module_card("⚗️","Alloy Recommendation",
+            "Input application specs → AI recommends the optimal ductile iron grade with confidence.",
+            "RANDOM FOREST","#22c55e"), unsafe_allow_html=True)
+        st.markdown(module_card("📷","CV Defect Detector",
+            "YOLOv8 real-time surface defect detection via image upload or live webcam feed.",
+            "YOLOv8","#ef4444"), unsafe_allow_html=True)
+
+    st.markdown("### 🏭 Operations Modules")
+    c4,c5,c6 = st.columns(3)
+    with c4:
+        st.markdown(module_card("🏭","Production Dashboard",
+            "Real-time shift-wise output tracking, operator performance and 30-day trend analysis.",
+            "LIVE DATA","#06b6d4"), unsafe_allow_html=True)
+        st.markdown(module_card("🔧","Predictive Maintenance",
+            "8-machine fleet health monitoring. Predict failures before they cause downtime.",
+            "AI PREDICT","#f59e0b"), unsafe_allow_html=True)
+    with c5:
+        st.markdown(module_card("📦","Inventory Tracker",
+            "Live raw material stock levels, low-stock alerts and auto-generated reorder POs.",
+            "LIVE STOCK","#22c55e"), unsafe_allow_html=True)
+        st.markdown(module_card("🔥","Heat Treatment",
+            "AI-recommended heat treatment cycles per grade. Generates official certificates.",
+            "PROCESS ENG","#f97316"), unsafe_allow_html=True)
+    with c6:
+        st.markdown(module_card("🚚","Order Tracker",
+            "End-to-end order pipeline from received to delivery. Kanban view + analytics.",
+            "CRM","#3b82f6"), unsafe_allow_html=True)
+        st.markdown(module_card("💰","Cost Estimator",
+            "Full cost breakdown: material + machining + overhead + margin. PDF quote included.",
+            "PRICING","#c9a84c"), unsafe_allow_html=True)
+
+    st.markdown("<div style='border-bottom:1px solid #c9a84c33;margin:20px 0'></div>", unsafe_allow_html=True)
+
+    # Tech stack
+    st.markdown("### 🛠️ Tech Stack")
+    t1,t2,t3,t4,t5 = st.columns(5)
+    for col, icon, title, items in [
+        (t1,"🐍","Backend",    "Python 3.13\nStreamlit\nFastAPI"),
+        (t2,"🤖","ML Models",  "Gradient Boosting\nRandom Forest\nYOLOv8"),
+        (t3,"🧠","Deep Learning","PyTorch DNN\nMini-GPT\nOpenCV"),
+        (t4,"💎","AI Services","Google Gemini\nGroq LLaMA\nAnthropic"),
+        (t5,"📄","Reports",    "ReportLab PDF\nPlotly Charts\nCSV Export"),
+    ]:
+        col.markdown(f"""
+<div style='background:#0d1f35;border:1px solid #c9a84c33;border-radius:10px;
+            padding:14px;text-align:center'>
+    <div style='font-size:22px'>{icon}</div>
+    <div style='color:#c9a84c;font-weight:700;font-size:12px;margin:4px 0'>{title}</div>
+    <div style='color:#778899;font-size:11px;line-height:1.6'>{items}</div>
+</div>""", unsafe_allow_html=True)
+
+elif page == "🔮  Quality Predictor":
     clf, reg, scaler, le = load_casting()
 
     st.title("🔮 Casting Quality Predictor")
@@ -1320,7 +1599,7 @@ Upload a CSV with these **exact column names**:
 # ==============================================================
 # MODULE 2 - DEMAND FORECASTING (confidence intervals already in original)
 # ==============================================================
-elif page == "📊 Demand Forecasting":
+elif page == "📊  Demand Forecast":
     st.title("📊 Demand Forecasting")
     st.markdown("##### AI-powered order forecasting per sector - next 6 months")
     st.markdown("---")
@@ -1407,7 +1686,7 @@ elif page == "📊 Demand Forecasting":
 # ==============================================================
 # MODULE 3 - ALLOY RECOMMENDATION
 # ==============================================================
-elif page == "⚗️ Alloy Recommendation":
+elif page == "⚗️  Alloy Advisor":
     clf_a, sc_a, le_a, grades_db = load_alloy()
 
     st.title("⚗️ Alloy Recommendation Engine")
@@ -1534,7 +1813,7 @@ elif page == "⚗️ Alloy Recommendation":
 # ==============================================================
 # MODULE 4 - RFQ INTELLIGENCE
 # ==============================================================
-elif page == "📄 RFQ Intelligence":
+elif page == "📄  RFQ Intelligence":
     _, _, le_a2, grades_db2 = load_alloy()
     clf_a2, sc_a2, _, _     = load_alloy()
 
@@ -1650,7 +1929,7 @@ ABC Engineering Pvt Ltd"""
 # ==============================================================
 # MODULE 5 - SMART ASSISTANT (Gemini API)
 # ==============================================================
-elif page == "🤖 Smart Assistant":
+elif page == "🤖  Smart Assistant":
     def build_bi_system_prompt(selected_dataset_name, columns):
         return f"""You are the VSPL AI BI Data Analyst, a conversational business intelligence assistant inspired by Rill Data.
 Your task is to analyze local casting datasets based on natural language questions.
@@ -1873,7 +2152,7 @@ Example Output format:
             st.rerun()
 
 
-elif page == "📷 CV Defect Detector":
+elif page == "📷  CV Defect Detector":
     st.title("📷 Real-time CV Defect Detector")
     st.markdown("##### Real-time automated surface inspection using Convolutional Neural Networks (CNN) & YOLOv8")
     st.markdown("---")
@@ -1986,533 +2265,6 @@ elif page == "📷 CV Defect Detector":
                     font = ImageFont.load_default()
 
                 boxes = []
-                verdict = ""
-                tips = []
-                status_color = ""
 
-                if run_type == "flawless":
-                    verdict = "[ACTIVE] PASSED - FLAWLESS SURFACE QUALITY"
-                    status_color = "green"
-                    tips = ["Cast surface passes all dimensional & visual QA parameters.", "No process adjustments required."]
-                elif run_type == "crack":
-                    verdict = "🚨 CRITICAL FAIL - SURFACE CRACK DETECTED"
-                    status_color = "red"
-                    boxes = [
-                        {
-                            "coords": [width * 0.25, height * 0.25, width * 0.75, height * 0.75],
-                            "label": f"Crack {conf_thresh*1.4:.0%}" if conf_thresh*1.4 <= 0.99 else "Crack 94%",
-                            "color": "#ef4444"
-                        }
-                    ]
-                    tips = [
-                        "🌡️ Thermal stress cracking detected. Reduce cooling rate parameters in solidification.",
-                        "❄️ Increase in-mold cooling time before shakeout.",
-                        "[SETUP] Verify alloy composition (Module 3) for optimal elongation properties."
-                    ]
-                elif run_type == "blowhole":
-                    verdict = "[ERROR] FAILED - SURFACE BLOWHOLE DEFECTS"
-                    status_color = "orange"
-                    boxes = [
-                        {
-                            "coords": [width * 0.15, height * 0.25, width * 0.45, height * 0.55],
-                            "label": f"Gas Blowhole {conf_thresh*1.3:.0%}" if conf_thresh*1.3 <= 0.99 else "Gas Blowhole 92%",
-                            "color": "#f59e0b"
-                        },
-                        {
-                            "coords": [width * 0.55, height * 0.45, width * 0.8, height * 0.7],
-                            "label": f"Gas Blowhole {conf_thresh*1.2:.0%}" if conf_thresh*1.2 <= 0.99 else "Gas Blowhole 88%",
-                            "color": "#f59e0b"
-                        }
-                    ]
-                    tips = [
-                        "💨 Dry sand molds thoroughly prior to pouring cast.",
-                        "🌡️ Pouring temperature is close to optimal range (1425 deg C), but venting must be increased.",
-                        "💧 Lower pouring velocity to reduce fluid entrainment."
-                    ]
-                elif run_type == "shrinkage":
-                    verdict = "[ERROR] FAILED - SOLIDIFICATION SHRINKAGE"
-                    status_color = "purple"
-                    boxes = [
-                        {
-                            "coords": [width * 0.35, height * 0.35, width * 0.7, height * 0.7],
-                            "label": f"Shrinkage Cavity {conf_thresh*1.25:.0%}" if conf_thresh*1.25 <= 0.99 else "Shrinkage Cavity 87%",
-                            "color": "#a855f7"
-                        }
-                    ]
-                    tips = [
-                        "📐 Feeding defect detected. Adjust casting gating system/riser sizing.",
-                        "🌡️ Adjust pour temperatures within 1400-1450 deg C to allow feed flow.",
-                        "[SETUP] Optimize silicon/carbon ratios (Module 3) to improve fluid expansion."
-                    ]
-
-                # Draw bounding boxes if confidence exceeds threshold
-                for box in boxes:
-                    # Bounding box coordinates
-                    x1, y1, x2, y2 = box["coords"]
-                    color_hex = box["color"]
-                    lbl = box["label"]
-
-                    # Draw thick rectangle outline
-                    draw.rectangle([x1, y1, x2, y2], outline=color_hex, width=max(4, int(width * 0.007)))
-                    
-                    # Draw solid text background banner
-                    draw.rectangle([x1, y1 - max(20, int(height * 0.05)), x1 + max(120, int(width * 0.28)), y1], fill=color_hex)
-                    
-                    # Draw label text
-                    draw.text((x1 + 6, y1 - max(17, int(height * 0.045))), lbl, fill="white", font=font)
-
-                # Show output image
-                st.image(img, caption="Simulated Camera Stream with YOLOv8 Bounding Box Overlay", use_container_width=True)
-
-                # Inference Diagnostics Panel
-                st.markdown(f"""
-                <div style='background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.05);margin-bottom:15px'>
-                    <div style='display:flex;justify-content:space-between;margin-bottom:6px'>
-                        <span style='color:#aaa'>Inference Speed:</span>
-                        <span style='color:#38bdf8;font-weight:bold'>12.4 ms (TensorRT)</span>
-                    </div>
-                    <div style='display:flex;justify-content:space-between;margin-bottom:6px'>
-                        <span style='color:#aaa'>FPS Rate:</span>
-                        <span style='color:#22c55e;font-weight:bold'>80.6 FPS</span>
-                    </div>
-                    <div style='display:flex;justify-content:space-between'>
-                        <span style='color:#aaa'>AI Model Confidence:</span>
-                        <span style='color:#f59e0b;font-weight:bold'>YOLOv8x FP16</span>
-                    </div>
-                </div>""", unsafe_allow_html=True)
-
-                # Verdict Notification
-                if status_color == "green":
-                    st.success(verdict)
-                elif status_color == "orange":
-                    st.warning(verdict)
-                else:
-                    st.error(verdict)
-
-                # Metallurgy recommendations
-                st.markdown("---")
-                st.subheader("💡 Process Rectification Tips")
-                for tip in tips:
-                    st.info(tip)
-        else:
-            st.markdown("### <- Upload or Select a Casting Run Sample to Inspect")
-            st.markdown("""
-| Defect Type | Primary Cause | Solution |
-|-------------|---------------|----------|
-| Gas Blowholes | Moisture / Trapped Gas | Increase Venting & Dry Molds |
-| Surface Cracks | Rapid Cooling / Stresses | Slow Cooling & Check Thickness |
-| Shrinkage Cavities | Poor Feeding / Solidification | Resize Gating Riser & Feed |
-| Flawless Surface | Perfect Solidification | Maintain Optimal Process Ratios |
-""")
-
-elif page == "🎥 Live IoT Telemetry":
-    st.title("🎥 Live IoT Telemetry Cockpit")
-    st.markdown("##### Real-time digital-twin sensor streaming from Vijay Spheroidals casting floor")
-    st.markdown("---")
-
-    import time
-    import random
-
-    col1, col2 = st.columns([1, 3])
-
-    with col1:
-        st.subheader("⚙️ Stream Controls")
-        stream_active = st.checkbox("🟢 Activate Live Telemetry Stream", value=True)
-        refresh_rate = st.slider("Sensor Refresh Interval (s)", 0.1, 2.0, 0.4)
-        
-        st.markdown("---")
-        st.markdown("**🛡️ Machine Status Indicators**")
-        st.success("🟢 Centrifugal Mold Spin: ACTIVE")
-        st.success("🟢 Coolant Pressure: OPTIMAL")
-        st.success("🟢 Ladle Tilt Actuator: ONLINE")
-        st.info("ℹ️ Active Run ID: VSPL-2026-904")
-
-    with col2:
-        st.subheader("📊 Real-time Sensor Channels")
-        
-        # Placeholders for live metrics & charts
-        m1, m2, m3 = st.columns(3)
-        met1 = m1.empty()
-        met2 = m2.empty()
-        met3 = m3.empty()
-        
-        chart_place = st.empty()
-
-        # Cache simulated historical ticks (max 15 ticks on chart)
-        if 'iot_time' not in st.session_state:
-            st.session_state.iot_time = list(range(15))
-            st.session_state.iot_temp = [random.uniform(1410, 1430) for _ in range(15)]
-            st.session_state.iot_rpm  = [random.uniform(1080, 1120) for _ in range(15)]
-            st.session_state.iot_flow = [random.uniform(1.4, 1.6) for _ in range(15)]
-            st.session_state.iot_count = 15
-
-        # Live loop updating placeholders smoothly
-        if stream_active:
-            for step in range(25):
-                st.session_state.iot_count += 1
-                st.session_state.iot_time.append(st.session_state.iot_count)
-                
-                # Fluctuations
-                last_temp = st.session_state.iot_temp[-1]
-                new_temp = last_temp + random.uniform(-4.5, 3.5)
-                new_temp = np.clip(new_temp, 1380, 1460)
-                
-                last_rpm = st.session_state.iot_rpm[-1]
-                new_rpm = last_rpm + random.uniform(-18, 18)
-                new_rpm = np.clip(new_rpm, 1000, 1200)
-
-                last_flow = st.session_state.iot_flow[-1]
-                new_flow = last_flow + random.uniform(-0.08, 0.08)
-                new_flow = np.clip(new_flow, 1.2, 1.8)
-
-                st.session_state.iot_time.pop(0)
-                st.session_state.iot_temp.append(new_temp)
-                st.session_state.iot_temp.pop(0)
-                st.session_state.iot_rpm.append(new_rpm)
-                st.session_state.iot_rpm.pop(0)
-                st.session_state.iot_flow.append(new_flow)
-                st.session_state.iot_flow.pop(0)
-
-                # Update stream metrics
-                met1.metric("Ladle Pour Temp", f"{new_temp:.1f}  deg C", f"{new_temp - last_temp:+.1f}  deg C")
-                met2.metric("Centrifugal Speed", f"{new_rpm:.0f} RPM", f"{new_rpm - last_rpm:+.0f} RPM")
-                met3.metric("Coolant Valve Flow", f"{new_flow:.2f} m³/h", f"{new_flow - last_flow:+.2f} m³/h")
-
-                # Double Y-axis telemetry plot
-                fig_iot = go.Figure()
-                fig_iot.add_trace(go.Scatter(
-                    x=st.session_state.iot_time, y=st.session_state.iot_temp,
-                    name="Mold Temp ( deg C)", line=dict(color='#ef4444', width=3),
-                    mode='lines+markers'
-                ))
-                fig_iot.add_trace(go.Scatter(
-                    x=st.session_state.iot_time, y=st.session_state.iot_rpm,
-                    name="Mold Speed (RPM)", line=dict(color='#3b82f6', width=3),
-                    mode='lines+markers', yaxis='y2'
-                ))
-
-                fig_iot.update_layout(
-                    title="Real-time Machine Diagnostics (Ladle Temp & Mold Speed)",
-                    xaxis=dict(title="Time Steps (Ticks)"),
-                    yaxis=dict(title="Temperature ( deg C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
-                    yaxis2=dict(title="Mold Speed (RPM)", titlefont=dict(color="#3b82f6"), tickfont=dict(color="#3b82f6"),
-                                overlaying='y', side='right'),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='white',
-                    height=380,
-                    margin=dict(t=40, b=20, l=10, r=10),
-                    legend=dict(orientation='h', y=1.1)
-                )
-                
-                chart_place.plotly_chart(fig_iot, use_container_width=True)
-                time.sleep(refresh_rate)
-            
-            st.rerun()
-        else:
-            met1.metric("Ladle Pour Temp (PAUSED)", f"{st.session_state.iot_temp[-1]:.1f}  deg C")
-            met2.metric("Centrifugal Speed (PAUSED)", f"{st.session_state.iot_rpm[-1]:.0f} RPM")
-            met3.metric("Coolant Valve Flow (PAUSED)", f"{st.session_state.iot_flow[-1]:.2f} m³/h")
-
-            fig_iot = go.Figure()
-            fig_iot.add_trace(go.Scatter(
-                x=st.session_state.iot_time, y=st.session_state.iot_temp,
-                name="Mold Temp ( deg C)", line=dict(color='#ef4444', width=3),
-                mode='lines+markers'
-            ))
-            fig_iot.add_trace(go.Scatter(
-                x=st.session_state.iot_time, y=st.session_state.iot_rpm,
-                name="Mold Speed (RPM)", line=dict(color='#3b82f6', width=3),
-                mode='lines+markers', yaxis='y2'
-            ))
-            fig_iot.update_layout(
-                title="Real-time Machine Diagnostics (PAUSED)",
-                xaxis=dict(title="Time Steps"),
-                yaxis=dict(title="Temperature ( deg C)", titlefont=dict(color="#ef4444"), tickfont=dict(color="#ef4444")),
-                yaxis2=dict(title="Mold Speed (RPM)", titlefont=dict(color="#3b82f6"), tickfont=dict(color="#3b82f6"),
-                            overlaying='y', side='right'),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='white',
-                height=380,
-                legend=dict(orientation='h', y=1.1)
-            )
-            chart_place.plotly_chart(fig_iot, use_container_width=True)
-
-elif page == "🧠 Deep Learning Hub":
-    st.title("🧠 Deep Learning & LLM Hub")
-    st.markdown("##### High-fidelity neural network training control room and offline custom LLM suite")
-    st.markdown("---")
-
-    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-    col_m1.metric("PyTorch DNN Accuracy", "90.6%", "Classification")
-    col_m2.metric("PyTorch DNN Error", "3.40 pts", "Regression MAE")
-    col_m3.metric("Local GPT Parameters", "114,257", "Mini-GPT Transformer")
-    col_m4.metric("Large Dataset Size", "50,000 runs", "casting_data_large.csv")
-
-    st.markdown("---")
-
-    dl_tab1, dl_tab2 = st.tabs(["📊 Multi-Task Casting Predictor (DNN)", "🤖 Local LLM Studio (Mini-GPT)"])
-
-    # [Forecast] Multi-Task Casting Predictor (DNN)
-    with dl_tab1:
-        st.subheader("📥 Large-Scale Casting Run Dataset")
-        st.markdown("""
-        This high-fidelity dataset contains **50,000 simulated centrifugal casting runs** for ductile iron castings. 
-        It models complex non-linear metallurgical relationships (Carbon Equivalent, centrifugal spin speed, and cooling parameters).
-        """)
-        
-        # Load and cache large dataset
-        csv_path = DATA_DIR / 'casting_data_large.csv'
-        if csv_path.exists():
-            @st.cache_data
-            def load_large_csv():
-                return pd.read_csv(csv_path)
-            
-            df_large = load_large_csv()
-            st.success(f"[OK] Large Dataset Found: **{df_large.shape[0]:,} rows** by **{df_large.shape[1]} columns**.")
-            
-            # Show download button
-            with open(csv_path, 'r', encoding='utf-8') as f:
-                csv_bytes = f.read()
-            
-            st.download_button(
-                label="📥 Download Large-Scale Dataset (CSV)",
-                data=csv_bytes,
-                file_name="casting_data_large.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-            
-            # Show sample in beautiful glassmorphic container
-            st.markdown("#### 🔍 Dataset Sample (First 5 Rows)")
-            st.dataframe(df_large.head(), use_container_width=True)
-            
-            with st.expander("[Forecast] View Dataset Descriptive Statistics"):
-                st.dataframe(df_large.describe(), use_container_width=True)
-        else:
-            st.error("[WARNING] Large dataset CSV not found. Please trigger the training script to generate it.")
-        
-        st.markdown("---")
-        
-        # DNN Training Section
-        st.subheader("🚀 PyTorch Multi-Task DNN Training & Convergence")
-        st.markdown("""
-        Train the **PyTorch Multi-Task Deep Neural Network (DNN)** online. This network has shared layers and simultaneously output:
-        - **Classification**: Probability of rejection ($Quality < 65$).
-        - **Regression**: Continuous Quality Score ($0 - 100$).
-        """)
-        
-        c_train1, c_train2 = st.columns([1, 1])
-        with c_train1:
-            st.markdown("##### [SETUP] DNN Training Control Panel")
-            if st.button("[RUN] Re-Train Multi-Task DNN (15 Epochs)", key="train_dnn_btn", use_container_width=True):
-                st.info("Initializing PyTorch multi-task training subprocess...")
-                
-                import subprocess
-                import sys
-                
-                try:
-                    process = subprocess.Popen(
-                        [sys.executable, str(BASE / "backend" / "train_deep_learning.py")],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        encoding='utf-8',
-                        bufsize=1
-                    )
-                    
-                    console_placeholder = st.empty()
-                    console_text = ""
-                    
-                    while True:
-                        line = process.stdout.readline()
-                        if not line:
-                            break
-                        console_text += line
-                        console_placeholder.code(console_text, language="bash")
-                        
-                    process.wait()
-                    st.success("[SUCCESS] PyTorch Multi-Task DNN training completed and weights saved successfully!")
-                    st.cache_resource.clear()
-                except Exception as e:
-                    st.error(f"Execution error: {e}")
-                    
-        with c_train2:
-            st.markdown("##### 📈 DNN Loss Curves & Metrics")
-            diag_img_path = MODEL_DIR / 'dnn_training_diagnostics.png'
-            if diag_img_path.exists():
-                st.image(str(diag_img_path), caption="Multi-Task DNN Loss Curves & Epoch Metrics Convergence", use_container_width=True)
-            else:
-                st.info("Loss curves will be generated once training completes.")
-
-    # [Assistant] Local LLM Studio (Mini-GPT)
-    with dl_tab2:
-        st.subheader("🤖 Local Mini-GPT Studio")
-        st.markdown("""
-        Experience **real, generative pre-trained language model training** completely inside your browser locally on CPU!
-        We have built a custom character-level **Generative Pretrained Transformer (GPT)** in PyTorch that trains on the VSPL metallurgy knowledge base.
-        """)
-        
-        # GPT architecture summary
-        with st.expander("🔬 View Transformer Self-Attention Architecture"):
-            st.markdown("""
-            This decoder-only GPT features:
-            - **Causal Self-Attention**: Masked attention matrix forces tokens to only attend to past tokens.
-            - **Multi-Head Structure**: 4 attention heads learning parallel semantic/spelling features.
-            - **Embedding Dimensions**: Token and positional embeddings mapping tokens into 64-dimensional space.
-            - **Residual Connections & LayerNorm**: Ensures deep learning stability during backpropagation.
-            """)
-            
-        c_gpt1, c_gpt2 = st.columns([1, 1])
-        with c_gpt1:
-            st.markdown("##### ⚙️ LLM Training Control Room")
-            num_epochs = st.slider("Select Training Epochs", min_value=100, max_value=1000, value=300, step=100, help="More epochs lead to better spelling and structure but take longer to train.")
-            
-            if st.button("[RUN] Train Custom Local GPT LLM Now", key="train_gpt_btn", use_container_width=True):
-                st.info("Initializing Local GPT training subprocess...")
-                
-                import subprocess
-                import sys
-                
-                try:
-                    process = subprocess.Popen(
-                        [sys.executable, str(BASE / "backend" / "train_local_gpt.py"), "--epochs", str(num_epochs)],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        encoding='utf-8',
-                        bufsize=1
-                    )
-                    
-                    console_placeholder = st.empty()
-                    console_text = ""
-                    
-                    while True:
-                        line = process.stdout.readline()
-                        if not line:
-                            break
-                        console_text += line
-                        console_placeholder.code(console_text, language="bash")
-                        
-                    process.wait()
-                    st.success("[SUCCESS] Local GPT LLM training completed and weights saved!")
-                    st.cache_resource.clear()
-                except Exception as e:
-                    st.error(f"Execution error: {e}")
-                    
-        with c_gpt2:
-            st.markdown("##### 🔮 Autoregressive Text Generator")
-            gpt_model, vocab = load_local_gpt()
-            if gpt_model is not None and vocab is not None:
-                st.success("🟢 Local GPT Weights Loaded & Ready!")
-                
-                prompt_input = st.text_input("Enter Prompt:", value="Topic: grade\nDetail:", help="Provide a starting phrase like 'Topic: safety' or 'Topic: casting'")
-                gen_tokens = st.slider("Tokens to Generate", 50, 300, 150, step=50)
-                temp = st.slider("Temperature (Creativity)", 0.2, 1.2, 0.6, step=0.1, help="Higher temperature makes text more creative but less coherent.")
-                
-                if st.button("🔮 Generate Text Offline", use_container_width=True):
-                    with st.spinner("Generating autoregressive text..."):
-                        char_to_idx = vocab['char_to_idx']
-                        idx_to_char = vocab['idx_to_char']
-                        
-                        # Encode prompt
-                        encoded = [char_to_idx[c] for c in prompt_input if c in char_to_idx]
-                        if not encoded:
-                            encoded = [char_to_idx['\n']]
-                            
-                        # Convert to tensor (B=1, T)
-                        idx_tensor = torch.tensor([encoded], dtype=torch.long)
-                        
-                        # Autoregressive generation
-                        with torch.no_grad():
-                            generated = gpt_model.generate(idx_tensor, max_new_tokens=gen_tokens, temperature=temp, top_k=5)
-                        
-                        # Decode
-                        output_text = "".join([idx_to_char[idx.item()] for idx in generated[0]])
-                        
-                        st.markdown("**Generated Metallurgy text:**")
-                        st.info(output_text)
-            else:
-                st.warning("⚠️ Local GPT weights not found. Please run the training first to generate the weights.")
-
-    st.markdown("---")
-    st.subheader("💬 Gemini Metallurgy & DL AI Tutor")
-    st.markdown("Get expert advice on how deep learning and transformer language models apply to VSPL metallurgy, carbon equivalents, and casting runs.")
-    
-    tutor_query = st.text_input("Ask the AI Tutor a question:", value="Explain how the Carbon Equivalent ratio predicts defects in the dataset", help="Ask anything about LLMs, Deep Learning, or metallurgy physics.")
-    if st.button("💬 Ask Tutor", use_container_width=False):
-        if not tutor_query:
-            st.warning("Please enter a question.")
-        else:
-            with st.spinner("Gemini AI is drafting response..."):
-                kb = load_kb()
-                tutor_prompt = f"""You are the VSPL Deep Learning & Metallurgy AI Tutor.
-                You are helping engineers understand the casting dataset, neural networks, and LLMs in metallurgy.
-                Answer the user's question with technical depth, explaining physics, formulas, or deep learning concepts clearly.
-                
-                --- QUESTION ---
-                {tutor_query}
-                """
-                
-                # Use standard system prompt call style
-                api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
-                if not api_key:
-                    st.error("[WARNING] Gemini API key not set. Please paste it in the sidebar.")
-                else:
-                    try:
-                        import requests
-                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-                        payload = {
-                            "contents": [{"role": "user", "parts": [{"text": tutor_prompt}]}],
-                            "systemInstruction": {"parts": [{"text": "You are a friendly, highly technical metallurgy and AI expert. Keep answers under 300 words."}]}
-                        }
-                        res = requests.post(url, json=payload, timeout=30)
-                        if res.status_code == 200:
-                            ans = res.json()["candidates"][0]["content"]["parts"][0]["text"]
-                            st.info(ans)
-                        else:
-                            st.error(f"API Error ({res.status_code}): {res.text}")
-                    except Exception as e:
-                        st.error(f"Error querying Gemini: {e}")
-
-elif page == "🏭 Production Dashboard":
-    render_production_dashboard()
-
-elif page == "📦 Inventory Tracker":
-    render_inventory_tracker()
-
-elif page == "🔧 Predictive Maintenance":
-    render_predictive_maintenance()
-
-elif page == "🚚 Order Tracker":
-    render_order_tracker()
-
-elif page == "🔥 Heat Treatment":
-    render_heat_treatment()
-
-elif page == "💰 Cost Estimator":
-    render_cost_estimation()
-
-elif page == "🎯 Process Optimizer":
-    render_process_optimizer()
-
-elif page == "📉 SPC Dashboard":
-    render_spc_dashboard()
-
-elif page == "💡 SHAP Explainability":
-    render_shap_explainer()
-
-elif page == "🌐 Digital Twin":
-    render_digital_twin()
-
-elif page == "🔍 Root Cause Analysis":
-    render_rca()
-
-elif page == "⚡ Energy Optimizer":
-    render_energy_optimizer()
-
-elif page == "🧬 Multi-Objective (NSGA-II)":
-    render_multi_objective()
-
-
+elif page == "✏️ Diagram Generator":
+    render_diagram_generator()
