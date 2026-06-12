@@ -41,30 +41,42 @@ DIAGRAM TYPES YOU SUPPORT:
 """
 
 def call_gemini_svg(prompt: str) -> str:
-    try:
-        import requests
-        api_key = os.environ.get("GEMINI_API_KEY", "")
-        if not api_key:
-            return None, "No Gemini API key set"
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-        payload = {
-            "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}]
-        }
-        resp = requests.post(url, json=payload, timeout=30)
-        resp.raise_for_status()
-        svg = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        svg = re.sub(r"^```svg\s*", "", svg)
-        svg = re.sub(r"^```\s*", "", svg)
-        svg = re.sub(r"\s*```$", "", svg)
-        svg = svg.strip()
-        if not svg.startswith("<svg"):
-            idx = svg.find("<svg")
-            if idx != -1:
-                svg = svg[idx:]
-        return svg, None
-    except Exception as e:
-        return None, str(e)
+    import requests
+    import time
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        return None, "No Gemini API key set"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    payload = {
+        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}]
+    }
+    headers = {"Content-Type": "application/json"}
+    
+    max_retries = 3
+    last_err = ""
+    for attempt in range(max_retries):
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            resp.raise_for_status()
+            svg = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            svg = re.sub(r"^```svg\s*", "", svg)
+            svg = re.sub(r"^```\s*", "", svg)
+            svg = re.sub(r"\s*```$", "", svg)
+            svg = svg.strip()
+            if not svg.startswith("<svg"):
+                idx = svg.find("<svg")
+                if idx != -1:
+                    svg = svg[idx:]
+            return svg, None
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            last_err = str(e)
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            return None, f"Request timed out/failed after {max_retries} attempts: {last_err}"
+        except Exception as e:
+            return None, str(e)
 
 def render_diagram_generator():
     from datetime import datetime

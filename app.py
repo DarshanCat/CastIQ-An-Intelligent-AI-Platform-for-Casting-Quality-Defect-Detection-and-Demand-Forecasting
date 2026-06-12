@@ -41,6 +41,13 @@ from modules.order_tracker          import render_order_tracker
 from modules.heat_treatment         import render_heat_treatment
 from modules.cost_estimation        import render_cost_estimation
 from modules.diagram_generator      import render_diagram_generator
+from modules.process_optimizer        import render_process_optimizer
+from modules.spc_dashboard            import render_spc_dashboard
+from modules.shap_explainer           import render_shap_explainer
+from modules.energy_optimizer         import render_energy_optimizer
+from modules.multi_objective_optimizer import render_multi_objective
+from modules.root_cause_analysis      import render_rca
+from modules.digital_twin             import render_digital_twin
 
 # ════════════════════════════════════════════════════════════
 # PAGE CONFIG  ← must be first Streamlit call, nothing before
@@ -532,6 +539,7 @@ def ask_gemini(messages, kb):
         return "[WARNING] Gemini API key not set. Please set the GEMINI_API_KEY environment variable or enter it in the sidebar."
     
     import requests
+    import time
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     
@@ -558,20 +566,29 @@ def ask_gemini(messages, kb):
         "Content-Type": "application/json"
     }
     
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        response.raise_for_status()
-        res_data = response.json()
-        
-        # Extract the text response
-        text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-        return text
-    except Exception as e:
+    max_retries = 3
+    last_err = ""
+    for attempt in range(max_retries):
         try:
-            err_msg = response.json().get("error", {}).get("message", str(e))
-        except Exception:
-            err_msg = str(e)
-        return f"[WARNING] Gemini API Request failed: {err_msg}"
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            res_data = response.json()
+            
+            # Extract the text response
+            text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+            return text
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            last_err = str(e)
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            return f"[WARNING] Gemini API Request timed out/failed after {max_retries} attempts: {last_err}"
+        except Exception as e:
+            try:
+                err_msg = response.json().get("error", {}).get("message", str(e))
+            except Exception:
+                err_msg = str(e)
+            return f"[WARNING] Gemini API Request failed: {err_msg}"
 
 # ==============================================================
 # UPGRADE 2 - BATCH QUALITY PREDICTION HELPER
@@ -891,43 +908,22 @@ with st.sidebar:
   </div>
 </div>""", unsafe_allow_html=True)
 
-    def _sec(label):
-        st.markdown(f'<div style="color:#2a3a4a;font-size:8px;font-weight:700;letter-spacing:2px;padding:10px 14px 3px;text-transform:uppercase">{label}</div>', unsafe_allow_html=True)
-
-    _sec("Overview")
-    page = st.radio("nav", [
-        "🏠 Dashboard",
-        "🔮 Quality Predictor",
-        "📊 Demand Forecast",
-        "⚗️ Alloy Advisor",
-        "📄 RFQ Intelligence",
-        "📷 CV Defect Detector",
-        "🤖 Smart Assistant",
-        "🏭 Production",
-        "📦 Inventory",
-        "🚚 Orders",
-        "🔧 Maintenance",
-        "🔥 Heat Treatment",
-        "💰 Cost Estimator",
-    "✏️ Diagram Generator",
-    ], label_visibility="collapsed")
-
-    st.markdown('<div style="height:1px;background:#1a2030;margin:8px 0"></div>', unsafe_allow_html=True)
-
-    # API key
+    # API key input at top
+    st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
     if _key:
         st.markdown('<div style="margin:0 8px 8px;padding:7px 10px;background:#0a1a10;border:1px solid #1a3a20;border-radius:5px;font-size:10px;color:#4ade80;font-weight:600">⬤ GEMINI CONNECTED</div>', unsafe_allow_html=True)
     else:
-        st.markdown('<div style="padding:0 8px 3px;font-size:10px;color:#4a6070;font-weight:600;letter-spacing:.5px">API KEY</div>', unsafe_allow_html=True)
+        st.markdown('<div style="padding:0 8px 3px;font-size:10px;color:#c9a84c;font-weight:600;letter-spacing:.5px">⚠️ GEMINI API KEY REQUIRED</div>', unsafe_allow_html=True)
         _uk = st.text_input("k", type="password", placeholder="Paste Gemini key...", label_visibility="collapsed")
         if _uk:
             os.environ["GEMINI_API_KEY"] = _uk
             _key = _uk
             st.success("Connected!")
+            st.rerun()
 
-    # System status
+    # System status at top
     st.markdown(f"""
-<div style="padding:8px 14px 14px">
+<div style="padding:8px 14px 8px">
   <div style="color:#2a3a4a;font-size:8px;font-weight:700;letter-spacing:2px;margin-bottom:8px">SYSTEM STATUS</div>
   {''.join([
     f'<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">'
@@ -942,6 +938,41 @@ with st.sidebar:
         ("12 Modules", "#4ade80", "ACTIVE"),
     ]
   ])}
+</div>""", unsafe_allow_html=True)
+
+    st.markdown('<div style="height:1px;background:#1a2030;margin:8px 0"></div>', unsafe_allow_html=True)
+
+    def _sec(label):
+        st.markdown(f'<div style="color:#2a3a4a;font-size:8px;font-weight:700;letter-spacing:2px;padding:10px 14px 3px;text-transform:uppercase">{label}</div>', unsafe_allow_html=True)
+
+    _sec("Overview")
+    page = st.radio("Navigation", [
+        "🏠 Dashboard",
+        "🔮 Casting Quality Predictor",
+        "🎯 Process Optimizer",
+        "📉 SPC Dashboard",
+        "💡 SHAP Explainability",
+        "🌐 Digital Twin",
+        "🔍 Root Cause Analysis",
+        "⚡ Energy Optimizer",
+        "🧬 Multi-Objective (NSGA-II)",
+        "📊 Demand Forecasting",
+        "⚗️ Alloy Recommendation",
+        "📄 RFQ Intelligence",
+        "🤖 Smart Assistant",
+        "📷 CV Defect Detector",
+        "✏️ Diagram Generator",
+        "🏭 Production Dashboard",
+        "📦 Inventory Tracker",
+        "🔧 Predictive Maintenance",
+        "🚚 Order Tracker",
+        "🔥 Heat Treatment",
+        "💰 Cost Estimator",
+    ], label_visibility="collapsed")
+
+    # Author/watermark at the very bottom
+    st.markdown(f"""
+<div style="padding:14px 14px 20px">
   <div style="height:1px;background:#1a2030;margin:10px 0 8px"></div>
   <div style="font-size:9px;color:#2a3a4a;line-height:1.8">
     DARSHAN<br>CMR UNIVERSITY<br>B.TECH AI &amp; ML · 2025–26
@@ -968,256 +999,6 @@ def page_header(icon, title, subtitle, tag=None, tag_color="#c9a84c"):
     </div>
   </div>
 </div>""", unsafe_allow_html=True)
-
-# ── Module card helper ─────────────────────────────────────
-def mod_card(icon, title, desc, tag, tc):
-    return f"""<div style="background:#111722;border:1px solid #1a2030;border-top:2px solid {tc};
-                            border-radius:6px;padding:14px;height:100%">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-    <span style="font-size:20px">{icon}</span>
-    <span style="background:{tc}18;color:{tc};font-size:8px;font-weight:700;
-                 padding:2px 7px;border-radius:3px;letter-spacing:1px;border:1px solid {tc}30">{tag}</span>
-  </div>
-  <div style="color:#c8d8e8;font-size:12px;font-weight:600;margin-bottom:4px">{title}</div>
-  <div style="color:#4a6070;font-size:10px;line-height:1.5">{desc}</div>
-</div>"""
-
-
-# ════════════════════════════════════════════════════════════
-# DASHBOARD
-# ════════════════════════════════════════════════════════════
-if page == "🏠 Dashboard":
-    page_header("🏭","CastIQ — AI Intelligence Platform",
-                "Vijay Spheroidals Pvt Ltd  ·  Peenya Industrial Area, Bengaluru  ·  ISO 9001:2015",
-                "12 MODULES ACTIVE","#c9a84c")
-
-    # KPI row
-    k1,k2,k3,k4,k5,k6 = st.columns(6)
-    k1.metric("Monthly Output",   "200 T",   "+4.2% this month")
-    k2.metric("Classifier Acc.",  "85.4%",   "Gradient Boosting")
-    k3.metric("Recommender Acc.", "94.5%",   "Random Forest")
-    k4.metric("Active Orders",    "6",       "1 on hold")
-    k5.metric("Stock Alerts",     "2",       "Reorder needed")
-    k6.metric("Sectors Served",   "6",       "Industries")
-
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-
-    # Section divider helper
-    def section_label(text):
-        st.markdown(f'<div style="color:#2a3a4a;font-size:9px;font-weight:700;letter-spacing:2px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #1a2030">{text}</div>', unsafe_allow_html=True)
-
-    section_label("⚡ AI QUALITY MODULES")
-    c1,c2,c3,c4,c5,c6 = st.columns(6)
-    c1.markdown(mod_card("🔮","Quality Predictor","Predict reject % before every pour. Batch upload + PDF.","ML MODEL","#60a5fa"), unsafe_allow_html=True)
-    c2.markdown(mod_card("📊","Demand Forecast","6-month sector forecast with confidence intervals.","PROPHET","#34d399"), unsafe_allow_html=True)
-    c3.markdown(mod_card("⚗️","Alloy Advisor","Input specs → optimal ductile iron grade.","94.5% ACC","#a78bfa"), unsafe_allow_html=True)
-    c4.markdown(mod_card("📄","RFQ Intelligence","Parse customer email → auto-generate quote.","NLP","#f87171"), unsafe_allow_html=True)
-    c5.markdown(mod_card("📷","CV Defect Detector","YOLOv8 defect detection via image or webcam.","YOLOv8","#f97316"), unsafe_allow_html=True)
-    c6.markdown(mod_card("🤖","Smart Assistant","Google Gemini answers any VSPL question.","GEMINI","#c9a84c"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-    section_label("🏭 OPERATIONS MODULES")
-    o1,o2,o3,o4,o5,o6 = st.columns(6)
-    o1.markdown(mod_card("🏭","Production","Shift-wise output, 30-day trends, operator stats.","LIVE","#06b6d4"), unsafe_allow_html=True)
-    o2.markdown(mod_card("📦","Inventory","Raw material stock levels and reorder PO generator.","STOCK","#34d399"), unsafe_allow_html=True)
-    o3.markdown(mod_card("🚚","Orders","End-to-end pipeline — received to delivery.","CRM","#60a5fa"), unsafe_allow_html=True)
-    o4.markdown(mod_card("🔧","Maintenance","8-machine fleet health. Predict failures early.","AI PRED","#f59e0b"), unsafe_allow_html=True)
-    o5.markdown(mod_card("🔥","Heat Treatment","Recommended heat cycles + downloadable certs.","PROCESS","#f97316"), unsafe_allow_html=True)
-    o6.markdown(mod_card("💰","Cost Estimator","Full cost breakdown — material to margin + PDF.","PRICING","#c9a84c"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-    section_label("🧩 AI TOOLS")
-    t1,t2 = st.columns(6)[:2]
-    t1.markdown(mod_card("✏️","Diagram Generator","Text prompt → AI generates SVG process/defect/mold diagrams.","GEMINI SVG","#a78bfa"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-    # Status bar
-    st.markdown("""
-<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;
-            background:#0b0e15;border:1px solid #1a2030;border-radius:6px">
-  <span style="font-size:9px;color:#2a3a4a;font-weight:700;letter-spacing:1.5px;
-               margin-right:4px;align-self:center">SYSTEM</span>
-  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
-               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ 12 MODULES</span>
-  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
-               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ YOLOv8</span>
-  <span style="background:#1a1a08;border:1px solid #3a3010;border-radius:3px;
-               padding:4px 10px;font-size:10px;color:#c9a84c;font-weight:600">⬤ GEMINI AI</span>
-  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
-               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ PDF REPORTS</span>
-  <span style="background:#0a1a10;border:1px solid #1a3a20;border-radius:3px;
-               padding:4px 10px;font-size:10px;color:#4ade80;font-weight:600">⬤ ISO 9001:2015</span>
-</div>""", unsafe_allow_html=True)
-
-# DASHBOARD
-# ══════════════════════════════════════════════════════════════
-if page == "🏠  Dashboard":
-    page_header("🏭", "CastIQ — AI Intelligence Platform",
-                "Vijay Spheroidals Pvt Ltd · Peenya Industrial Area, Bengaluru · ISO 9001:2015")
-
-    # KPIs
-    k1,k2,k3,k4,k5,k6 = st.columns(6)
-    k1.metric("Monthly Capacity",  "200 T",   "Tonnes/month")
-    k2.metric("AI Modules",        "12",      "Active & live")
-    k3.metric("Classifier Acc.",   "85.4%",   "+2.1% vs baseline")
-    k4.metric("Recommender Acc.",  "94.5%",   "Alloy model")
-    k5.metric("Active Orders",     "6",       "1 on hold")
-    k6.metric("Stock Alerts",      "2",       "Reorder needed")
-
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
-
-    def module_card(icon, title, desc, tag, tag_color, icon_bg):
-        return f"""
-<div style="background:#111d2e;border:1px solid #1e2d45;border-radius:12px;
-            padding:18px;cursor:pointer;transition:border-color 0.15s"
-     onmouseover="this.style.borderColor='#2a3d55'"
-     onmouseout="this.style.borderColor='#1e2d45'">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-    <div style="width:38px;height:38px;background:{icon_bg};border-radius:8px;
-                display:flex;align-items:center;justify-content:center;font-size:18px">{icon}</div>
-    <span style="background:{tag_color}18;color:{tag_color};font-size:9px;font-weight:600;
-                 padding:3px 8px;border-radius:20px;border:1px solid {tag_color}30;
-                 letter-spacing:0.8px">{tag}</span>
-  </div>
-  <div style="color:#c8d8e8;font-size:13px;font-weight:500;margin-bottom:5px">{title}</div>
-  <div style="color:#5a7a96;font-size:11px;line-height:1.55">{desc}</div>
-</div>"""
-
-    # AI Quality group
-    st.markdown("<div style='color:#3d5166;font-size:10px;font-weight:600;letter-spacing:2px;margin-bottom:12px'>⚡ AI QUALITY MODULES</div>", unsafe_allow_html=True)
-    c1,c2,c3 = st.columns(3)
-    with c1:
-        st.markdown(module_card("🔮","Quality Predictor",
-            "Predict reject % before every pour. Batch upload + PDF report.",
-            "ML MODEL","#60a5fa","#0c2240"), unsafe_allow_html=True)
-        st.markdown(module_card("📄","RFQ Intelligence",
-            "Parse customer email → auto-generate a formatted quote instantly.",
-            "NLP","#a78bfa","#1a0f40"), unsafe_allow_html=True)
-    with c2:
-        st.markdown(module_card("📊","Demand Forecasting",
-            "6-month sector forecast with confidence bands and trend analysis.",
-            "PROPHET","#34d399","#0a2a1f"), unsafe_allow_html=True)
-        st.markdown(module_card("📷","CV Defect Detector",
-            "YOLOv8 surface defect detection via image upload or live webcam.",
-            "YOLOv8","#f87171","#2a0f0f"), unsafe_allow_html=True)
-    with c3:
-        st.markdown(module_card("⚗️","Alloy Advisor",
-            "Input application specs → AI recommends optimal ductile iron grade.",
-            "94.5% ACC","#34d399","#0a2a1f"), unsafe_allow_html=True)
-        st.markdown(module_card("🤖","Smart Assistant",
-            "Google Gemini answers any VSPL product or process question intelligently.",
-            "GEMINI AI","#c9a84c","#2a1f08"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-
-    # Operations group
-    st.markdown("<div style='color:#3d5166;font-size:10px;font-weight:600;letter-spacing:2px;margin-bottom:12px'>🏭 OPERATIONS MODULES</div>", unsafe_allow_html=True)
-    c4,c5,c6 = st.columns(3)
-    with c4:
-        st.markdown(module_card("🏭","Production Dashboard",
-            "Shift-wise output tracking, operator performance and 30-day trends.",
-            "LIVE DATA","#06b6d4","#052a35"), unsafe_allow_html=True)
-        st.markdown(module_card("🚚","Order Tracker",
-            "Full order pipeline from received to delivery. Kanban view + analytics.",
-            "CRM","#60a5fa","#0c2240"), unsafe_allow_html=True)
-    with c5:
-        st.markdown(module_card("📦","Inventory Tracker",
-            "Live raw material stock levels, low-stock alerts and reorder PO generator.",
-            "LIVE STOCK","#34d399","#0a2a1f"), unsafe_allow_html=True)
-        st.markdown(module_card("🔥","Heat Treatment",
-            "AI-recommended heat treatment cycles per grade with official certificates.",
-            "PROCESS","#f97316","#2a1508"), unsafe_allow_html=True)
-    with c6:
-        st.markdown(module_card("🔧","Predictive Maintenance",
-            "8-machine fleet health monitoring. Predict failures before downtime.",
-            "AI PREDICT","#f59e0b","#2a1a05"), unsafe_allow_html=True)
-        st.markdown(module_card("💰","Cost Estimator",
-            "Full cost breakdown: material + machining + overhead + margin. PDF included.",
-            "PRICING","#c9a84c","#2a1f08"), unsafe_allow_html=True)
-
-    # Status bar
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-    st.markdown("""
-<div style="display:flex;gap:10px;flex-wrap:wrap">
-  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
-              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
-    <span style="color:#4ade80;font-size:8px">●</span> 12 modules active
-  </div>
-  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
-              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
-    <span style="color:#4ade80;font-size:8px">●</span> YOLOv8 pretrained
-  </div>
-  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
-              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
-    <span style="color:#c9a84c;font-size:8px">●</span> Gemini API integration
-  </div>
-  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
-              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
-    <span style="color:#4ade80;font-size:8px">●</span> ISO 9001:2015
-  </div>
-  <div style="background:#111d2e;border:1px solid #1e2d45;border-radius:7px;
-              padding:8px 14px;font-size:11px;color:#5a7a96;display:flex;align-items:center;gap:6px">
-    <span style="color:#4ade80;font-size:8px">●</span> ReportLab PDF export
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-
-    # ── GROUP 1: AI Quality ──────────────────────────────────
-    st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:4px'>⚡ AI QUALITY</div>", unsafe_allow_html=True)
-    page = st.radio("Navigation", [
-        "🏠 Dashboard",
-        "🔮 Casting Quality Predictor",
-        "📊 Demand Forecasting",
-        "⚗️ Alloy Recommendation",
-        "📄 RFQ Intelligence",
-        "🤖 Smart Assistant",
-        "📷 CV Defect Detector",
-        "🏭 Production Dashboard",
-        "📦 Inventory Tracker",
-        "🔧 Predictive Maintenance",
-        "🚚 Order Tracker",
-        "🔥 Heat Treatment",
-        "💰 Cost Estimator",
-    "✏️ Diagram Generator",
-    ], label_visibility="collapsed")
-
-    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:14px 0'></div>", unsafe_allow_html=True)
-
-    # ── API Key ──────────────────────────────────────────────
-    env_key = os.environ.get("GEMINI_API_KEY", "")
-    if not env_key:
-        st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px'>🔑 API KEY</div>", unsafe_allow_html=True)
-        user_key = st.text_input("Gemini API Key", type="password",
-                                  placeholder="Paste key here...",
-                                  label_visibility="collapsed")
-        if user_key:
-            os.environ["GEMINI_API_KEY"] = user_key
-            st.success("✅ Key set!")
-    else:
-        st.markdown("<div style='color:#22c55e; font-size:11px'>✅ Gemini API Connected</div>", unsafe_allow_html=True)
-
-    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:10px 0'></div>", unsafe_allow_html=True)
-
-    # ── Module status pills ──────────────────────────────────
-    st.markdown("<div style='color:#c9a84c;font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:8px'>📡 MODULE STATUS</div>", unsafe_allow_html=True)
-    statuses = [
-        ("🔮","Quality","Live"),("📊","Forecast","Live"),("⚗️","Alloy","Live"),
-        ("📄","RFQ","Live"),("🤖","Assistant","Gemini"),("📷","CV Defect","YOLOv8"),
-        ("🏭","Production","Live"),("📦","Inventory","Live"),("🔧","Maintenance","Live"),
-        ("🚚","Orders","Live"),("🔥","Heat Tx","Live"),("💰","Cost","Live"),
-    ]
-    cols = st.columns(2)
-    for i, (icon, name, status) in enumerate(statuses):
-        color = "#22c55e" if status in ("Live","Gemini","YOLOv8") else "#f59e0b"
-        cols[i%2].markdown(
-            f"<div style='font-size:10px;padding:2px 0;color:#aab'>{icon} {name} "
-            f"<span style='color:{color}'>● {status}</span></div>",
-            unsafe_allow_html=True)
-
-    st.markdown("<div style='border-bottom:1px solid #c9a84c33; margin:10px 0'></div>", unsafe_allow_html=True)
-    st.markdown("<div style='color:#c9a84c66;font-size:10px;text-align:center'>Built by Darshan · CMR University<br>B.Tech AI & ML 2025–26</div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1337,7 +1118,7 @@ if page == "🏠 Dashboard":
     <div style='color:#778899;font-size:11px;line-height:1.6'>{items}</div>
 </div>""", unsafe_allow_html=True)
 
-elif page == "🔮  Quality Predictor":
+elif page == "🔮 Casting Quality Predictor":
     clf, reg, scaler, le = load_casting()
 
     st.title("🔮 Casting Quality Predictor")
@@ -1599,7 +1380,7 @@ Upload a CSV with these **exact column names**:
 # ==============================================================
 # MODULE 2 - DEMAND FORECASTING (confidence intervals already in original)
 # ==============================================================
-elif page == "📊  Demand Forecast":
+elif page == "📊 Demand Forecasting":
     st.title("📊 Demand Forecasting")
     st.markdown("##### AI-powered order forecasting per sector - next 6 months")
     st.markdown("---")
@@ -1686,7 +1467,7 @@ elif page == "📊  Demand Forecast":
 # ==============================================================
 # MODULE 3 - ALLOY RECOMMENDATION
 # ==============================================================
-elif page == "⚗️  Alloy Advisor":
+elif page == "⚗️ Alloy Recommendation":
     clf_a, sc_a, le_a, grades_db = load_alloy()
 
     st.title("⚗️ Alloy Recommendation Engine")
@@ -1813,7 +1594,7 @@ elif page == "⚗️  Alloy Advisor":
 # ==============================================================
 # MODULE 4 - RFQ INTELLIGENCE
 # ==============================================================
-elif page == "📄  RFQ Intelligence":
+elif page == "📄 RFQ Intelligence":
     _, _, le_a2, grades_db2 = load_alloy()
     clf_a2, sc_a2, _, _     = load_alloy()
 
@@ -1929,7 +1710,7 @@ ABC Engineering Pvt Ltd"""
 # ==============================================================
 # MODULE 5 - SMART ASSISTANT (Gemini API)
 # ==============================================================
-elif page == "🤖  Smart Assistant":
+elif page == "🤖 Smart Assistant":
     def build_bi_system_prompt(selected_dataset_name, columns):
         return f"""You are the VSPL AI BI Data Analyst, a conversational business intelligence assistant inspired by Rill Data.
 Your task is to analyze local casting datasets based on natural language questions.
@@ -2079,13 +1860,29 @@ Example Output format:
                 # Direct Gemini REST call
                 try:
                     import requests
+                    import time
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
                     payload = {
                         "contents": [{"role": "user", "parts": [{"text": bi_prompt}]}],
                         "systemInstruction": {"parts": [{"text": system_prompt}]}
                     }
-                    res = requests.post(url, json=payload, timeout=30)
-                    if res.status_code == 200:
+                    
+                    max_retries = 3
+                    res = None
+                    last_err = ""
+                    for attempt in range(max_retries):
+                        try:
+                            res = requests.post(url, json=payload, timeout=60)
+                            res.raise_for_status()
+                            break
+                        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                            last_err = str(e)
+                            if attempt < max_retries - 1:
+                                time.sleep(2 ** attempt)
+                                continue
+                            raise Exception(f"Request timed out/failed after {max_retries} attempts: {last_err}")
+                    
+                    if res is not None and res.status_code == 200:
                         res_text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
                         
                         # Clean any markdown code blocks
@@ -2152,7 +1949,7 @@ Example Output format:
             st.rerun()
 
 
-elif page == "📷  CV Defect Detector":
+elif page == "📷 CV Defect Detector":
     st.title("📷 Real-time CV Defect Detector")
     st.markdown("##### Real-time automated surface inspection using Convolutional Neural Networks (CNN) & YOLOv8")
     st.markdown("---")
@@ -2268,3 +2065,42 @@ elif page == "📷  CV Defect Detector":
 
 elif page == "✏️ Diagram Generator":
     render_diagram_generator()
+
+elif page == "🏭 Production Dashboard":
+    render_production_dashboard()
+
+elif page == "📦 Inventory Tracker":
+    render_inventory_tracker()
+
+elif page == "🔧 Predictive Maintenance":
+    render_predictive_maintenance()
+
+elif page == "🚚 Order Tracker":
+    render_order_tracker()
+
+elif page == "🔥 Heat Treatment":
+    render_heat_treatment()
+
+elif page == "💰 Cost Estimator":
+    render_cost_estimation()
+
+elif page == "🎯 Process Optimizer":
+    render_process_optimizer()
+
+elif page == "📉 SPC Dashboard":
+    render_spc_dashboard()
+
+elif page == "💡 SHAP Explainability":
+    render_shap_explainer()
+
+elif page == "🌐 Digital Twin":
+    render_digital_twin()
+
+elif page == "🔍 Root Cause Analysis":
+    render_rca()
+
+elif page == "⚡ Energy Optimizer":
+    render_energy_optimizer()
+
+elif page == "🧬 Multi-Objective (NSGA-II)":
+    render_multi_objective()
