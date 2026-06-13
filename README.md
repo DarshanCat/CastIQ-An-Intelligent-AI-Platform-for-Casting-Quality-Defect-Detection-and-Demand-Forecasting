@@ -6,17 +6,13 @@
 
 ## Screenshots
 
-**Dashboard — Module Overview**
-![CastIQ Dashboard](docs/screenshots/screenshot_dashboard.png)
+![CastIQ Dashboard](screenshot_dashboard.png)
 
-**Casting Quality Predictor — Real-time Quality Score**
-![Casting Quality Predictor](docs/screenshots/screenshot_quality_predictor.png)
+![Casting Quality Predictor](screenshot_quality_predictor.png)
 
-**Process Optimizer — Inverse AI**
-![Process Optimizer](docs/screenshots/screenshot_process_optimizer.png)
+![Process Optimizer](screenshot_process_optimizer.png)
 
-**SPC Dashboard — Statistical Process Control**
-![SPC Dashboard](docs/screenshots/screenshot_spc_dashboard.png)
+![SPC Dashboard](screenshot_spc_dashboard.png)
 
 ---
 
