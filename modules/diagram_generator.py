@@ -43,23 +43,33 @@ DIAGRAM TYPES YOU SUPPORT:
 def call_gemini_svg(prompt: str) -> str:
     import requests
     import time
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
     if not api_key:
         return None, "No Gemini API key set"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": [{"role": "user", "parts": [{"text": prompt}]}]
     }
     headers = {"Content-Type": "application/json"}
-    
+
     max_retries = 3
     last_err = ""
     for attempt in range(max_retries):
         try:
             resp = requests.post(url, headers=headers, json=payload, timeout=60)
-            resp.raise_for_status()
-            svg = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            if resp.status_code != 200:
+                return None, f"API error {resp.status_code}: {resp.text[:300]}"
+            data = resp.json()
+            candidates = data.get("candidates", [])
+            if not candidates:
+                fb = data.get("promptFeedback", {})
+                return None, f"No candidates returned. promptFeedback: {fb}"
+            cand = candidates[0]
+            parts = cand.get("content", {}).get("parts", [])
+            if not parts:
+                return None, f"No content parts. finishReason: {cand.get('finishReason')}"
+            svg = parts[0]["text"].strip()
             svg = re.sub(r"^```svg\s*", "", svg)
             svg = re.sub(r"^```\s*", "", svg)
             svg = re.sub(r"\s*```$", "", svg)
