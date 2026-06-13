@@ -250,9 +250,9 @@ def render_multi_objective():
                 best_idx = np.argmin(delivery_vals)
             else:
                 # Balanced: normalize each objective and sum
-                q_n = (quality_vals - quality_vals.min()) / (quality_vals.ptp() + 1e-9)
-                c_n = (cost_vals.max() - cost_vals) / (cost_vals.ptp() + 1e-9)
-                d_n = (delivery_vals.max() - delivery_vals) / (delivery_vals.ptp() + 1e-9)
+                q_n = (quality_vals - quality_vals.min()) / ((quality_vals.max() - quality_vals.min()) + 1e-9)
+                c_n = (cost_vals.max() - cost_vals) / ((cost_vals.max() - cost_vals.min()) + 1e-9)
+                d_n = (delivery_vals.max() - delivery_vals) / ((delivery_vals.max() - delivery_vals.min()) + 1e-9)
                 best_idx = np.argmax(q_n + c_n + d_n)
 
             best_x = X_pareto[best_idx]

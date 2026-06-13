@@ -1265,7 +1265,7 @@ elif page == "🔮 Casting Quality Predictor":
                     fig_3d = go.Figure(data=[go.Surface(
                         x=R, y=T_mesh, z=Temp_grid,
                         colorscale='Hot',
-                        colorbar=dict(title='Temp ( deg C)', titleside='right', len=0.8)
+                        colorbar=dict(title=dict(text='Temp ( deg C)', side='right'), len=0.8)
                     )])
                     
                     fig_3d.update_layout(
