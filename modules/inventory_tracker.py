@@ -76,7 +76,7 @@ def render_inventory_tracker():
         margin=dict(l=0, r=0, t=20, b=0),
         height=320
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown("---")
     
@@ -92,7 +92,7 @@ def render_inventory_tracker():
         details = inventory[tx_item]
         tx_qty = st.number_input(f"Quantity to Log ({details['unit']})", min_value=1.0, value=100.0, step=10.0)
         
-    log_btn = st.button("💾 Commit Transaction & Update Stock", use_container_width=True, type="primary")
+    log_btn = st.button("💾 Commit Transaction & Update Stock", width="stretch", type="primary")
     
     if log_btn:
         current_qty = details["quantity"]

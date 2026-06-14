@@ -198,21 +198,21 @@ def render_spc_dashboard():
         st.plotly_chart(make_control_chart(
             bn, q_s, "Quality Score (batch avg)",
             ucl_q, lcl_q, mu_q, "Score", vq
-        ), use_container_width=True)
+        ), width="stretch")
 
         # ── Pour Temp Chart ───────────────────────────────────
         st.subheader("🌡️ Pour Temperature — Control Chart")
         st.plotly_chart(make_control_chart(
             bn, t_s, "Pour Temperature °C",
             ucl_t, lcl_t, mu_t, "°C", vt
-        ), use_container_width=True)
+        ), width="stretch")
 
         # ── CE Chart ─────────────────────────────────────────
         st.subheader("⚗️ Carbon Equivalent — Control Chart")
         st.plotly_chart(make_control_chart(
             bn, c_s, "Carbon Equivalent (CE)",
             ucl_ce, lcl_ce, mu_ce, "CE", vc
-        ), use_container_width=True)
+        ), width="stretch")
 
     st.markdown("---")
 
@@ -237,7 +237,7 @@ def render_spc_dashboard():
             yaxis=dict(gridcolor='rgba(255,255,255,0.08)'),
             legend=dict(orientation='h'), margin=dict(t=10,b=30,l=10,r=80)
         )
-        st.plotly_chart(cusum_fig, use_container_width=True)
+        st.plotly_chart(cusum_fig, width="stretch")
         if any(s > cusum_h for s in Sp) or any(s > cusum_h for s in Sn):
             st.warning("⚠️ **CUSUM signal detected** — Process mean has shifted. "
                        "Check last 5 batches for assignable cause.")
@@ -252,5 +252,5 @@ def render_spc_dashboard():
         {'Parameter': '⚗️ Carbon Equivalent','USL': 4.6,  'LSL': 4.3,  'Mean': f"{CE_arr.mean():.3f}",     'Cpk': f"{cpk_ce:.3f}", 'Status': '✅ Capable' if cpk_ce>=1.33 else '⚠️ Marginal' if cpk_ce>=1.0 else '❌ Incapable'},
         {'Parameter': '🔄 G-Factor',         'USL': 100,  'LSL': 40,   'Mean': f"{G_arr.mean():.1f}",      'Cpk': f"{cpk(G_arr,100,40):.3f}", 'Status': '✅ Capable' if cpk(G_arr,100,40)>=1.33 else '⚠️ Marginal'},
     ]
-    st.dataframe(pd.DataFrame(cpk_data), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(cpk_data), width="stretch", hide_index=True)
     st.caption("Cpk ≥ 1.33 = Capable (Six Sigma Level) | 1.0–1.33 = Marginal | < 1.0 = Incapable")

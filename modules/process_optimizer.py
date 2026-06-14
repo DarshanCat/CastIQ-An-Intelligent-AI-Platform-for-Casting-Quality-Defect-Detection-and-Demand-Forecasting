@@ -114,7 +114,7 @@ def render_process_optimizer():
             fixed_carbon = st.slider("Carbon %", 3.2, 3.9, 3.5, 0.01)
 
         optimize_btn = st.button("🚀 Find Optimal Parameters",
-                                 use_container_width=True, type="primary")
+                                 width="stretch", type="primary")
 
     with col2:
         if optimize_btn:
@@ -188,7 +188,7 @@ def render_process_optimizer():
                     'Range':     f"{lo} – {hi} {unit}".rstrip(),
                     'Status':    '✅ Optimal' if lo<=v<=hi else '⚠️ Check'
                 })
-            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
             # Bar chart: parameter deviation from midpoint
             st.markdown("---")
@@ -217,7 +217,7 @@ def render_process_optimizer():
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
                 font_color='white', margin=dict(t=10,b=10,l=10,r=60)
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
         else:
             st.markdown("### 👈 Set target quality & click **Find Optimal Parameters**")

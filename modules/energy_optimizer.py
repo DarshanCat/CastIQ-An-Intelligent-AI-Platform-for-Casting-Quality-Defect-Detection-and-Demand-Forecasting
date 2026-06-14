@@ -102,7 +102,7 @@ def render_energy_optimizer():
         tariff = st.number_input("Electricity Rate (₹/kWh)", 4.0, 20.0, 8.5, 0.5)
 
         optimize_btn = st.button("⚡ Optimize for Minimum Energy",
-                                  use_container_width=True, type="primary")
+                                  width="stretch", type="primary")
 
     with col2:
         if optimize_btn:
@@ -211,7 +211,7 @@ def render_energy_optimizer():
                 annotations=[dict(text=f"{E_opt:.1f}\nkWh", x=0.5, y=0.5,
                                   font_size=16, showarrow=False)]
             )
-            st.plotly_chart(fig_e, use_container_width=True)
+            st.plotly_chart(fig_e, width="stretch")
 
             st.markdown("---")
 
@@ -226,7 +226,7 @@ def render_energy_optimizer():
                 ("📏 Mold Diameter",     f"{dia_opt:.3f}m",    "0.05–0.20m"),
             ]
             df_r = pd.DataFrame(recipe, columns=['Parameter','Optimal Value','Range'])
-            st.dataframe(df_r, use_container_width=True, hide_index=True)
+            st.dataframe(df_r, width="stretch", hide_index=True)
 
             # ── Physics validation ────────────────────────────
             st.subheader("🔬 Physics Check")
@@ -254,7 +254,7 @@ def render_energy_optimizer():
                 yaxis=dict(title='Energy Cost (₹)', gridcolor='rgba(255,255,255,0.08)'),
                 showlegend=False, margin=dict(t=10,b=40,l=10,r=80)
             )
-            st.plotly_chart(fig_c, use_container_width=True)
+            st.plotly_chart(fig_c, width="stretch")
 
         else:
             st.markdown("### 👈 Set constraints & click **Optimize**")

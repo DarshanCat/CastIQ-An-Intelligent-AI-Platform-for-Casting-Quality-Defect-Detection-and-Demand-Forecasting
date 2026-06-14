@@ -73,7 +73,7 @@ def render_cost_estimation():
             {"Cost Component": "💡 Unit Rate per Casting", "Amount (Rs.)": f"Rs. {int(total_price / pieces):,}"}
         ])
         
-        st.dataframe(cost_df, use_container_width=True, hide_index=True)
+        st.dataframe(cost_df, width="stretch", hide_index=True)
         
         # Download Quote Text
         quote_text = f"""==================================================
@@ -108,4 +108,4 @@ def render_cost_estimation():
 
         st.download_button("⬇️ Download Commercial Quotation (TXT)", quote_text,
                            file_name=f"VSPL_Quotation_{int(wt_total)}kg.txt",
-                           mime="text/plain", use_container_width=True)
+                           mime="text/plain", width="stretch")

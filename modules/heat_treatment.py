@@ -35,7 +35,7 @@ def render_heat_treatment():
         hold_time = st.slider("Holding Duration (Hours)", 0.5, 6.0, def_hold, step=0.5)
         cool_rate = st.slider("Cooling Rate (°C/Hour)", 10.0, 300.0, def_cool, step=10.0)
         
-        sim_btn = st.button("🔥 Run Metallurgical Simulation", use_container_width=True, type="primary")
+        sim_btn = st.button("🔥 Run Metallurgical Simulation", width="stretch", type="primary")
 
     with col2:
         st.subheader("📊 Thermal Cycle Curve")
@@ -76,7 +76,7 @@ def render_heat_treatment():
             margin=dict(l=0, r=0, t=20, b=0),
             height=300
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.markdown("---")
     
@@ -129,4 +129,4 @@ def render_heat_treatment():
         margin=dict(l=0, r=0, t=10, b=0),
         height=260
     )
-    st.plotly_chart(fig_pie, use_container_width=True)
+    st.plotly_chart(fig_pie, width="stretch")

@@ -57,7 +57,7 @@ def render_production_dashboard():
             margin=dict(l=0, r=0, t=20, b=0),
             height=300
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with g2:
         st.markdown("### 📊 Defect Distribution")
@@ -75,7 +75,7 @@ def render_production_dashboard():
             height=300,
             showlegend=False
         )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width="stretch")
 
     st.markdown("---")
     
@@ -98,4 +98,4 @@ def render_production_dashboard():
                 "Quality Status": f"{status_emoji} {status}"
             })
             
-        st.dataframe(pd.DataFrame(styled_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(styled_rows), width="stretch", hide_index=True)

@@ -106,7 +106,7 @@ def render_digital_twin():
         wall_mm   = st.slider("Wall Thickness (mm)",8,  70,   25,  1)
         mold_type = st.selectbox("Mold Type", ['Permanent','Sand','Die'])
 
-        simulate_btn = st.button("▶️ Run Simulation", use_container_width=True, type="primary")
+        simulate_btn = st.button("▶️ Run Simulation", width="stretch", type="primary")
 
     with col2:
         T_liq = compute_liquidus(carbon, silicon)
@@ -181,7 +181,7 @@ def render_digital_twin():
                 yaxis=dict(title='Temperature (°C)', gridcolor='rgba(255,255,255,0.08)'),
                 showlegend=False, margin=dict(t=20,b=40,l=10,r=100)
             )
-            st.plotly_chart(fig_temp, use_container_width=True)
+            st.plotly_chart(fig_temp, width="stretch")
 
             # ── Nodularity Evolution ──────────────────────────
             st.subheader("⭕ Nodularity Index Evolution (Mg Fade)")
@@ -201,7 +201,7 @@ def render_digital_twin():
                            gridcolor='rgba(255,255,255,0.08)'),
                 showlegend=False, margin=dict(t=10,b=40,l=10,r=120)
             )
-            st.plotly_chart(fig_nod, use_container_width=True)
+            st.plotly_chart(fig_nod, width="stretch")
 
             # ── G-Factor Radial Visualization ────────────────
             st.subheader("🔄 Centrifugal G-Force Distribution")
@@ -222,7 +222,7 @@ def render_digital_twin():
                 yaxis=dict(title='G-Factor', gridcolor='rgba(255,255,255,0.08)'),
                 showlegend=False, margin=dict(t=10,b=40,l=10,r=120)
             )
-            st.plotly_chart(fig_g, use_container_width=True)
+            st.plotly_chart(fig_g, width="stretch")
 
             # ── Summary Report ────────────────────────────────
             st.subheader("📋 Simulation Summary")

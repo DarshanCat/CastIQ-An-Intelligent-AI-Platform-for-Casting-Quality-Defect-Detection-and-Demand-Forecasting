@@ -172,7 +172,7 @@ def render_multi_objective():
         ])
 
         run_btn = st.button("🧬 Run NSGA-II Optimization",
-                             use_container_width=True, type="primary")
+                             width="stretch", type="primary")
 
     with col2:
         if run_btn:
@@ -219,7 +219,7 @@ def render_multi_objective():
                 paper_bgcolor='rgba(0,0,0,0)', font_color='white',
                 margin=dict(t=20,b=20,l=0,r=0)
             )
-            st.plotly_chart(fig_3d, use_container_width=True)
+            st.plotly_chart(fig_3d, width="stretch")
 
             # ── 2D scatter: Quality vs Cost ───────────────────
             st.subheader("📊 Quality vs Cost Trade-off")
@@ -238,7 +238,7 @@ def render_multi_objective():
                 yaxis=dict(title='Quality Score', gridcolor='rgba(255,255,255,0.1)'),
                 margin=dict(t=10,b=40,l=10,r=80)
             )
-            st.plotly_chart(fig_2d, use_container_width=True)
+            st.plotly_chart(fig_2d, width="stretch")
 
             # ── Pick best for user preference ─────────────────
             st.subheader("🎯 Best Solution for Your Priority")
@@ -268,7 +268,7 @@ def render_multi_objective():
                 'Value': [f"{v:.4f}" for v in best_x],
                 'Unit': ['%','%','%','%','%','min','RPM','m','°C','°C','mm']
             })
-            st.dataframe(recipe_df, use_container_width=True, hide_index=True)
+            st.dataframe(recipe_df, width="stretch", hide_index=True)
 
             # ── All Pareto solutions table ─────────────────────
             st.markdown("---")
@@ -280,7 +280,7 @@ def render_multi_objective():
                 'Delivery (days)': delivery_vals.round(1),
                 'Rec.': ['⭐' if i == best_idx else '' for i in range(n_solutions)]
             }).sort_values('Quality', ascending=False)
-            st.dataframe(table_df, use_container_width=True, hide_index=True)
+            st.dataframe(table_df, width="stretch", hide_index=True)
 
         else:
             st.markdown("### 👈 Configure and click **Run NSGA-II Optimization**")

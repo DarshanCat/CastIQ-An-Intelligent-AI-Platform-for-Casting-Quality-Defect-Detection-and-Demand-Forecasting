@@ -208,6 +208,43 @@ BASE      = Path(__file__).parent
 MODEL_DIR = BASE / 'backend' / 'models'
 DATA_DIR  = BASE / 'backend' / 'data'
 
+# ── Auto-retrain if models are incompatible/missing ────────
+def verify_and_retrain_models():
+    import subprocess
+    import sys
+    model_files = [
+        MODEL_DIR/'classifier.pkl',
+        MODEL_DIR/'regressor.pkl',
+        MODEL_DIR/'scaler.pkl',
+        MODEL_DIR/'label_encoder.pkl',
+        MODEL_DIR/'alloy_clf.pkl',
+        MODEL_DIR/'alloy_scaler.pkl',
+        MODEL_DIR/'alloy_le.pkl'
+    ]
+    
+    # Check if files exist
+    all_exist = all(f.exists() for f in model_files)
+    if not all_exist:
+        try:
+            subprocess.run([sys.executable, "setup.py"], check=True)
+        except Exception:
+            pass
+        return
+
+    # Try loading them to check for compatibility
+    try:
+        import joblib
+        for f in model_files:
+            joblib.load(f)
+    except Exception:
+        # Incompatible model files (e.g. pickle version mismatch)
+        try:
+            subprocess.run([sys.executable, "setup.py"], check=True)
+        except Exception:
+            pass
+
+verify_and_retrain_models()
+
 # ==============================================================
 # LOADERS
 # ==============================================================
@@ -828,8 +865,7 @@ st.sidebar.title("🏭 VSPL AI Platform")
 st.sidebar.caption("Vijay Spheroidals Pvt Ltd")
 
 # Premium interactive crystal lattice particle network (HTML5 Canvas + JS)
-import streamlit.components.v1 as components
-components.html("""
+st.iframe("""
 <canvas id="canvas" style="width: 100%; height: 110px; background: transparent; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.04);"></canvas>
 <script>
 const canvas = document.getElementById('canvas');
@@ -1148,7 +1184,7 @@ elif page == "🔮 Casting Quality Predictor":
             st.markdown("---")
             st.markdown("**Prediction AI Architecture**")
             model_choice = st.selectbox("AI Model Architecture", ["Gradient Boosting (Traditional ML)", "PyTorch Multitask DNN (Deep Learning)"])
-            predict = st.button("🔮 Predict Quality", use_container_width=True, type="primary")
+            predict = st.button("🔮 Predict Quality", width="stretch", type="primary")
 
         with col2:
             if predict:
@@ -1223,7 +1259,7 @@ elif page == "🔮 Casting Quality Predictor":
                 tab1, tab2 = st.tabs(["[Forecast] QA Prediction & Metrics", "🧊 3D Solidification Viewer"])
 
                 with tab1:
-                    st.plotly_chart(quality_gauge(score), use_container_width=True)
+                    st.plotly_chart(quality_gauge(score), width="stretch")
                     c1, c2 = st.columns(2)
                     c1.metric("Reject Probability", f"{rej_p:.1f}%")
                     c2.metric("Verdict", verdict)
@@ -1242,7 +1278,7 @@ elif page == "🔮 Casting Quality Predictor":
                         data=pdf_bytes,
                         file_name=f"VSPL_Quality_Report_{datetime.today().strftime('%Y%m%d_%H%M')}.pdf",
                         mime="application/pdf",
-                        use_container_width=True,
+                        width="stretch",
                     )
                 
                 with tab2:
@@ -1280,7 +1316,7 @@ elif page == "🔮 Casting Quality Predictor":
                         height=420,
                         margin=dict(t=20, b=10, l=10, r=10)
                     )
-                    st.plotly_chart(fig_3d, use_container_width=True)
+                    st.plotly_chart(fig_3d, width="stretch")
             else:
                 st.markdown("### <- Set parameters & click **Predict Quality**")
                 st.markdown("""
@@ -1326,9 +1362,9 @@ Upload a CSV with these **exact column names**:
         if uploaded:
             df_in = pd.read_csv(uploaded)
             st.markdown(f"**{len(df_in)} rows loaded.** Preview:")
-            st.dataframe(df_in.head(5), use_container_width=True, hide_index=True)
+            st.dataframe(df_in.head(5), width="stretch", hide_index=True)
 
-            if st.button("[RUN] Run Batch Prediction", type="primary", use_container_width=True):
+            if st.button("[RUN] Run Batch Prediction", type="primary", width="stretch"):
                 df_out, err = run_batch_prediction(df_in, clf, reg, scaler, le)
                 if err:
                     st.error(f"Error: {err}")
@@ -1353,7 +1389,7 @@ Upload a CSV with these **exact column names**:
                     st.dataframe(
                         df_out[['pour_temp','spin_rpm','carbon_pct','silicon_pct',
                                 'mold_type','quality_score','reject_probability','verdict']],
-                        use_container_width=True, hide_index=True
+                        width="stretch", hide_index=True
                     )
 
                     # Verdict pie chart
@@ -1367,14 +1403,14 @@ Upload a CSV with these **exact column names**:
                         height=280, paper_bgcolor='rgba(0,0,0,0)',
                         font_color='white', margin=dict(t=20,b=10)
                     )
-                    st.plotly_chart(pie_fig, use_container_width=True)
+                    st.plotly_chart(pie_fig, width="stretch")
 
                     # Download results CSV
                     csv_out = df_out.to_csv(index=False)
                     st.download_button(
                         "⬇️ Download Results CSV", csv_out,
                         file_name=f"VSPL_Batch_Results_{datetime.today().strftime('%Y%m%d_%H%M')}.csv",
-                        mime="text/csv", use_container_width=True
+                        mime="text/csv", width="stretch"
                     )
 
 # ==============================================================
@@ -1439,7 +1475,7 @@ elif page == "📊 Demand Forecasting":
             legend=dict(orientation='h',y=1.1),
             xaxis=dict(gridcolor='rgba(255,255,255,0.1)'),
             yaxis=dict(gridcolor='rgba(255,255,255,0.1)',title='Orders (units/mo)'))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.markdown("---")
     st.subheader("📋 6-Month Forecast Table")
@@ -1450,7 +1486,7 @@ elif page == "📊 Demand Forecasting":
                          'Forecast':f"{r['predicted']:.0f}",
                          'Low':f"{r['lower']:.0f}",'High':f"{r['upper']:.0f}"})
     if rows:
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
     st.markdown("---")
     st.subheader("📈 Projected 6-Month Total")
@@ -1462,7 +1498,7 @@ elif page == "📊 Demand Forecasting":
     bfig.update_layout(height=340,showlegend=False,paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',font_color='white',
         yaxis=dict(gridcolor='rgba(255,255,255,0.1)'))
-    st.plotly_chart(bfig, use_container_width=True)
+    st.plotly_chart(bfig, width="stretch")
 
 # ==============================================================
 # MODULE 3 - ALLOY RECOMMENDATION
@@ -1483,7 +1519,7 @@ elif page == "⚗️ Alloy Recommendation":
         corrosion = st.select_slider("🧪 Corrosion Resistance",
                                      options=["Low","Medium","High"], value="Medium")
         thickness = st.slider("📐 Wall Thickness (mm)", 5, 80, 25)
-        find_btn  = st.button("🔍 Find Best Alloy Grade", use_container_width=True, type="primary")
+        find_btn  = st.button("🔍 Find Best Alloy Grade", width="stretch", type="primary")
 
     with col2:
         if find_btn:
@@ -1529,7 +1565,7 @@ elif page == "⚗️ Alloy Recommendation":
                 plot_bgcolor='rgba(0,0,0,0)', font_color='white',
                 xaxis=dict(range=[0,115], gridcolor='rgba(255,255,255,0.1)'),
                 margin=dict(t=10,b=10,l=10,r=60))
-            st.plotly_chart(bfig, use_container_width=True)
+            st.plotly_chart(bfig, width="stretch")
 
             # ── METALLURGICAL RADAR COMPARISON ──
             st.markdown("---")
@@ -1577,7 +1613,7 @@ elif page == "⚗️ Alloy Recommendation":
                 height=360,
                 margin=dict(t=20, b=20, l=20, r=20)
             )
-            st.plotly_chart(fig_radar, use_container_width=True)
+            st.plotly_chart(fig_radar, width="stretch")
         else:
             st.markdown("### <- Set requirements & click **Find Best Alloy Grade**")
             st.markdown("""
@@ -1622,7 +1658,7 @@ Regards,
 ABC Engineering Pvt Ltd"""
 
         rfq_text = st.text_area("RFQ Content", value=sample_rfq, height=280)
-        analyze_btn = st.button("⚡ Extract & Generate Quote", use_container_width=True, type="primary")
+        analyze_btn = st.button("⚡ Extract & Generate Quote", width="stretch", type="primary")
 
     with col2:
         if analyze_btn and rfq_text.strip():
@@ -1683,12 +1719,12 @@ ABC Engineering Pvt Ltd"""
             with c1:
                 st.download_button("⬇️ Download Quote (TXT)", quote,
                                    file_name=f"VSPL_Quote_{datetime.today().strftime('%Y%m%d')}.txt",
-                                   mime="text/plain", use_container_width=True)
+                                   mime="text/plain", width="stretch")
             with c2:
                 pdf_bytes = generate_quote_pdf(parsed, top_grade, ppkg, qty_kg, total, lead)
                 st.download_button("[RFQ] Download PDF Quotation", pdf_bytes,
                                    file_name=f"VSPL_Quotation_{datetime.today().strftime('%Y%m%d')}.pdf",
-                                   mime="application/pdf", use_container_width=True)
+                                   mime="application/pdf", width="stretch")
         elif analyze_btn:
             st.warning("Please paste an RFQ first.")
         else:
@@ -1782,7 +1818,7 @@ Example Output format:
             ("Safety rules on casting floor?", c4),
         ]
         for sugg, col in suggestions:
-            if col.button(sugg, key=f"sugg_{sugg}", use_container_width=True):
+            if col.button(sugg, key=f"sugg_{sugg}", width="stretch"):
                 st.session_state.messages.append({"role":"user","content":sugg})
                 with st.spinner("Gemini is thinking..."):
                     try:
@@ -1803,7 +1839,7 @@ Example Output format:
             st.session_state.messages.append({"role":"assistant","content":ans})
             st.rerun()
 
-        if st.button("[CLEAR] Clear General Chat", use_container_width=False):
+        if st.button("[CLEAR] Clear General Chat", width="content"):
             st.session_state.messages = [
                 {"role":"assistant",
                  "content":"Hello! Hello! I'm the VSPL Smart Assistant. How can I help you?"}
@@ -1839,9 +1875,9 @@ Example Output format:
             with st.chat_message(msg['role'], avatar="[Forecast]" if msg['role']=='assistant' else "[USER]"):
                 st.markdown(msg['content'])
                 if 'query_result' in msg:
-                    st.dataframe(pd.DataFrame(msg['query_result']), use_container_width=True)
+                    st.dataframe(pd.DataFrame(msg['query_result']), width="stretch")
                 if 'chart_fig' in msg:
-                    st.plotly_chart(msg['chart_fig'], use_container_width=True)
+                    st.plotly_chart(msg['chart_fig'], width="stretch")
                     
         # BI Chat input
         if bi_prompt := st.chat_input("Query local casting dataset...", key="bi_chat_input"):
@@ -1941,7 +1977,7 @@ Example Output format:
                     st.session_state.bi_messages.append({"role": "assistant", "content": f"[WARNING] Connection error: {req_err}"})
             st.rerun()
             
-        if st.button("[CLEAR] Clear BI Analyst Conversations", use_container_width=False):
+        if st.button("[CLEAR] Clear BI Analyst Conversations", width="content"):
             st.session_state.bi_messages = [
                 {"role": "assistant", 
                  "content": "Hello! Hello! I'm your VSPL Conversational BI Analyst. Like Rill Data, you can query our active casting run database directly."}
@@ -1992,7 +2028,7 @@ elif page == "📷 CV Defect Detector":
             "ResNet50-Ductile (Surface Classification)"
         ])
         conf_thresh = st.slider("Confidence Threshold", 0.1, 1.0, 0.5, 0.05)
-        run_inspection = st.button("🔍 Run Surface Inspection", use_container_width=True, type="primary")
+        run_inspection = st.button("🔍 Run Surface Inspection", width="stretch", type="primary")
 
     with col2:
         st.subheader("📊 CV Diagnostics")

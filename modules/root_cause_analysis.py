@@ -182,7 +182,7 @@ def render_rca():
         }
 
         diagnose_btn = st.button("🔍 Run Root Cause Analysis",
-                                  use_container_width=True, type="primary")
+                                  width="stretch", type="primary")
 
         if diagnose_btn:
             vec    = build_vector(params).reshape(1,-1)
@@ -266,7 +266,7 @@ def render_rca():
                 yaxis=dict(gridcolor='rgba(255,255,255,0.08)'),
                 margin=dict(t=10,b=10,l=10,r=80)
             )
-            st.plotly_chart(fig_shap, use_container_width=True)
+            st.plotly_chart(fig_shap, width="stretch")
 
             # ── Action plan ───────────────────────────────────
             st.subheader("📋 Recommended Action Plan")
@@ -297,7 +297,7 @@ def render_rca():
             if action_rows:
                 df_act = pd.DataFrame(action_rows,
                     columns=['Priority','Parameter','Action','Severity'])
-                st.dataframe(df_act, use_container_width=True, hide_index=True)
+                st.dataframe(df_act, width="stretch", hide_index=True)
             else:
                 st.success("✅ No specific parameter corrections needed — check raw material batch quality")
 

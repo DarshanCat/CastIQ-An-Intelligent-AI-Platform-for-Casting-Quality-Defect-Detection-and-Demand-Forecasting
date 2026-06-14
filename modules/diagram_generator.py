@@ -103,7 +103,7 @@ def render_diagram_generator():
         # Quick examples
         st.markdown('<div style="color:#4a6070;font-size:11px;font-weight:600;letter-spacing:1px;margin-bottom:6px">QUICK EXAMPLES</div>', unsafe_allow_html=True)
         for label in DIAGRAM_EXAMPLES:
-            if st.button(label, use_container_width=True, key=f"ex_{label}"):
+            if st.button(label, width="stretch", key=f"ex_{label}"):
                 st.session_state['diagram_prompt'] = DIAGRAM_EXAMPLES[label]
 
         st.markdown("---")
@@ -135,7 +135,7 @@ def render_diagram_generator():
 
         generate_btn = st.button(
             "⚡ Generate Diagram",
-            use_container_width=True,
+            width="stretch",
             type="primary",
             disabled=not prompt.strip()
         )
@@ -197,7 +197,7 @@ def render_diagram_generator():
                 data=st.session_state['last_svg'],
                 file_name=f"VSPL_Diagram_{datetime.today().strftime('%Y%m%d_%H%M')}.svg",
                 mime="image/svg+xml",
-                use_container_width=True
+                width="stretch"
             )
 
             # Download as HTML (viewable in browser)
@@ -210,11 +210,11 @@ def render_diagram_generator():
                 data=html_wrap,
                 file_name=f"VSPL_Diagram_{datetime.today().strftime('%Y%m%d_%H%M')}.html",
                 mime="text/html",
-                use_container_width=True
+                width="stretch"
             )
 
             # Regenerate
-            if dc3.button("🔄 Regenerate", use_container_width=True, type="secondary"):
+            if dc3.button("🔄 Regenerate", width="stretch", type="secondary"):
                 if 'last_prompt' in st.session_state:
                     with st.spinner("Regenerating..."):
                         svg2, err2 = call_gemini_svg(st.session_state['last_prompt'])

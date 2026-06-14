@@ -126,7 +126,7 @@ def render_shap_explainer():
             'wall_thickness_mm':wall_mm,'mold_enc':mold_enc
         }
 
-        explain_btn = st.button("🔬 Explain This Cast", use_container_width=True, type="primary")
+        explain_btn = st.button("🔬 Explain This Cast", width="stretch", type="primary")
 
         if explain_btn:
             vec    = build_input_vector(params).reshape(1, -1)
@@ -178,7 +178,7 @@ def render_shap_explainer():
                 yaxis=dict(gridcolor='rgba(255,255,255,0.08)'),
                 margin=dict(t=10, b=10, l=10, r=80)
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
             # ── Plain English Explanation ─────────────────────
             st.subheader("📝 Plain English Explanation")
@@ -265,7 +265,7 @@ def render_shap_explainer():
             yaxis=dict(gridcolor='rgba(255,255,255,0.08)'),
             margin=dict(t=20, b=20, l=10, r=80)
         )
-        st.plotly_chart(fig_gi, use_container_width=True)
+        st.plotly_chart(fig_gi, width="stretch")
 
         st.caption("🟡 Gold bars = Physics-derived features | 🔵 Blue bars = Raw process inputs")
 
@@ -302,7 +302,7 @@ def render_shap_explainer():
             rpm_b= st.slider("RPM",         200, 1200,350,  10,   key='cb_rpm')
             pt_b = st.slider("Pour Temp",   1440,1600,1455, 1,    key='cb_pt')
 
-        compare_btn = st.button("🆚 Compare These Casts", use_container_width=True, type="primary")
+        compare_btn = st.button("🆚 Compare These Casts", width="stretch", type="primary")
 
         if compare_btn:
             def make_params(c,si,mg,tt,rpm,pt):
@@ -359,7 +359,7 @@ def render_shap_explainer():
                 margin=dict(t=20, b=80, l=10, r=10)
             )
             st.subheader("📊 SHAP Comparison — Cast A vs Cast B")
-            st.plotly_chart(fig_cmp, use_container_width=True)
+            st.plotly_chart(fig_cmp, width="stretch")
 
             # Difference table
             diffs = [{'Feature': feat_names[i],
@@ -372,4 +372,4 @@ def render_shap_explainer():
             diffs_df = diffs_df.sort_values('|Δ|', ascending=False).drop('|Δ|', axis=1)
 
             st.subheader("📋 Feature Impact Difference Table")
-            st.dataframe(diffs_df.head(10), use_container_width=True, hide_index=True)
+            st.dataframe(diffs_df.head(10), width="stretch", hide_index=True)

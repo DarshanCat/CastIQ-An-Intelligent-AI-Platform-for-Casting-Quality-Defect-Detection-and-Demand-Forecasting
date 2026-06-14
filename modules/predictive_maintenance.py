@@ -85,7 +85,7 @@ def render_predictive_maintenance():
         margin=dict(l=0, r=0, t=20, b=0),
         height=320
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     
     st.markdown(f"""
     > [!NOTE]
