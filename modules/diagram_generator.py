@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import re
+from datetime import datetime
 
 DIAGRAM_EXAMPLES = {
     "Casting Process Flow": "Generate a casting process flow diagram for ductile iron centrifugal casting showing steps: Raw Material → Melting → Inoculation → Centrifugal Casting → Cooling → Knockout → Shot Blasting → Inspection → Dispatch",
@@ -37,7 +38,7 @@ DIAGRAM TYPES YOU SUPPORT:
 - Mold cross sections (2D layered view)
 - QC flowcharts (decision diamonds + boxes)
 - Heat treatment cycles (line graph style)
-- Composition charts (pie/bar style)
+- Alloy composition diagrams (pie/donut chart style)
 """
 
 def call_gemini_svg(prompt: str) -> str:
@@ -46,51 +47,66 @@ def call_gemini_svg(prompt: str) -> str:
     api_key = st.session_state.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
     if not api_key:
         return None, "No Gemini API key set"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
     payload = {
         "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
         "contents": [{"role": "user", "parts": [{"text": prompt}]}]
     }
     headers = {"Content-Type": "application/json"}
 
-    max_retries = 3
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
     last_err = ""
-    for attempt in range(max_retries):
-        try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=60)
-            if resp.status_code != 200:
-                return None, f"API error {resp.status_code}: {resp.text[:300]}"
-            data = resp.json()
-            candidates = data.get("candidates", [])
-            if not candidates:
-                fb = data.get("promptFeedback", {})
-                return None, f"No candidates returned. promptFeedback: {fb}"
-            cand = candidates[0]
-            parts = cand.get("content", {}).get("parts", [])
-            if not parts:
-                return None, f"No content parts. finishReason: {cand.get('finishReason')}"
-            svg = parts[0]["text"].strip()
-            svg = re.sub(r"^```svg\s*", "", svg)
-            svg = re.sub(r"^```\s*", "", svg)
-            svg = re.sub(r"\s*```$", "", svg)
-            svg = svg.strip()
-            if not svg.startswith("<svg"):
-                idx = svg.find("<svg")
-                if idx != -1:
-                    svg = svg[idx:]
-            return svg, None
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-            last_err = str(e)
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            return None, f"Request timed out/failed after {max_retries} attempts: {last_err}"
-        except Exception as e:
-            return None, str(e)
+    
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=60)
+                
+                if resp.status_code == 429:
+                    last_err = f"API error 429: Quota exceeded for {model}."
+                    break
+                    
+                if resp.status_code != 200:
+                    last_err = f"API error {resp.status_code} for {model}: {resp.text[:200]}"
+                    break
+                    
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if not candidates:
+                    fb = data.get("promptFeedback", {})
+                    last_err = f"No candidates returned for {model}. promptFeedback: {fb}"
+                    break
+                    
+                cand = candidates[0]
+                parts = cand.get("content", {}).get("parts", [])
+                if not parts:
+                    last_err = f"No content parts for {model}. finishReason: {cand.get('finishReason')}"
+                    break
+                    
+                svg = parts[0]["text"].strip()
+                svg = re.sub(r"^```svg\s*", "", svg)
+                svg = re.sub(r"^```\s*", "", svg)
+                svg = re.sub(r"\s*```$", "", svg)
+                svg = svg.strip()
+                if not svg.startswith("<svg"):
+                    idx = svg.find("<svg")
+                    if idx != -1:
+                        svg = svg[idx:]
+                return svg, None
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                last_err = f"Connection error for {model}: {e}"
+                if attempt < max_retries - 1:
+                    time.sleep(1.5)
+                    continue
+            except Exception as e:
+                last_err = f"Error for {model}: {e}"
+                break
+                
+    return None, f"All models failed. Last error: {last_err}"
 
 def render_diagram_generator():
-    from datetime import datetime
-
     st.title("✏️ AI Diagram Generator")
     st.markdown('<div style="color:#4a6070;font-size:13px;margin-bottom:20px">Type any prompt → Gemini AI generates a professional technical diagram as SVG</div>', unsafe_allow_html=True)
     st.markdown("---")

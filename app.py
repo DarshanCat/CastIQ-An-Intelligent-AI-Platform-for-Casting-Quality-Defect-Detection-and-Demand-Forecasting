@@ -578,8 +578,6 @@ def ask_gemini(messages, kb):
     import requests
     import time
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    
     system_prompt = build_system_prompt(kb)
     
     chat_msgs = [m for m in messages if m["role"] in ("user", "assistant")]
@@ -603,29 +601,54 @@ def ask_gemini(messages, kb):
         "Content-Type": "application/json"
     }
     
-    max_retries = 3
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
     last_err = ""
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
-            response.raise_for_status()
-            res_data = response.json()
-            
-            # Extract the text response
-            text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-            return text
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-            last_err = str(e)
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            return f"[WARNING] Gemini API Request timed out/failed after {max_retries} attempts: {last_err}"
-        except Exception as e:
+    
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        max_retries = 2
+        for attempt in range(max_retries):
             try:
-                err_msg = response.json().get("error", {}).get("message", str(e))
-            except Exception:
-                err_msg = str(e)
-            return f"[WARNING] Gemini API Request failed: {err_msg}"
+                response = requests.post(url, headers=headers, json=payload, timeout=60)
+                
+                # Check for rate limit / quota exceeded
+                if response.status_code == 429:
+                    last_err = f"API error 429: Quota exceeded for {model}."
+                    break # try next model
+                    
+                if response.status_code != 200:
+                    try:
+                        err_msg = response.json().get("error", {}).get("message", response.text[:200])
+                    except Exception:
+                        err_msg = response.text[:200]
+                    last_err = f"API error {response.status_code} for {model}: {err_msg}"
+                    break # try next model
+                    
+                res_data = response.json()
+                candidates = res_data.get("candidates", [])
+                if not candidates:
+                    fb = res_data.get("promptFeedback", {})
+                    last_err = f"No candidates returned for {model}. promptFeedback: {fb}"
+                    break
+                    
+                cand = candidates[0]
+                parts = cand.get("content", {}).get("parts", [])
+                if not parts:
+                    last_err = f"No content parts for {model}. finishReason: {cand.get('finishReason')}"
+                    break
+                    
+                text = parts[0]["text"]
+                return text
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                last_err = f"Connection error for {model}: {e}"
+                if attempt < max_retries - 1:
+                    time.sleep(1.5)
+                    continue
+            except Exception as e:
+                last_err = f"Error for {model}: {e}"
+                break # try next model
+                
+    return f"[WARNING] Gemini API Request failed. All models failed. Last error: {last_err}"
 
 # ==============================================================
 # UPGRADE 2 - BATCH QUALITY PREDICTION HELPER
@@ -1805,7 +1828,7 @@ Example Output format:
 
         # Chat history
         for msg in st.session_state.messages:
-            with st.chat_message(msg['role'], avatar="🏭" if msg['role']=='assistant' else "[USER]"):
+            with st.chat_message(msg['role'], avatar="🏭" if msg['role']=='assistant' else "👤"):
                 st.markdown(msg['content'])
 
         # Quick suggestions
@@ -1872,7 +1895,7 @@ Example Output format:
             
         # Display BI chat history
         for msg in st.session_state.bi_messages:
-            with st.chat_message(msg['role'], avatar="[Forecast]" if msg['role']=='assistant' else "[USER]"):
+            with st.chat_message(msg['role'], avatar="📊" if msg['role']=='assistant' else "👤"):
                 st.markdown(msg['content'])
                 if 'query_result' in msg:
                     st.dataframe(pd.DataFrame(msg['query_result']), width="stretch")
@@ -1897,26 +1920,41 @@ Example Output format:
                 try:
                     import requests
                     import time
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
                     payload = {
                         "contents": [{"role": "user", "parts": [{"text": bi_prompt}]}],
                         "systemInstruction": {"parts": [{"text": system_prompt}]}
                     }
                     
-                    max_retries = 3
+                    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
                     res = None
                     last_err = ""
-                    for attempt in range(max_retries):
-                        try:
-                            res = requests.post(url, json=payload, timeout=60)
-                            res.raise_for_status()
+                    success = False
+                    
+                    for model in models_to_try:
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+                        max_retries = 2
+                        for attempt in range(max_retries):
+                            try:
+                                res = requests.post(url, json=payload, timeout=60)
+                                if res.status_code == 429:
+                                    last_err = f"API error 429: Quota exceeded for {model}."
+                                    break
+                                
+                                if res.status_code != 200:
+                                    last_err = f"API error {res.status_code} for {model}: {res.text[:200]}"
+                                    break
+                                    
+                                success = True
+                                break
+                            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                                last_err = f"Connection error for {model}: {e}"
+                                if attempt < max_retries - 1:
+                                    time.sleep(1.5)
+                                    continue
+                        if success:
                             break
-                        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-                            last_err = str(e)
-                            if attempt < max_retries - 1:
-                                time.sleep(2 ** attempt)
-                                continue
-                            raise Exception(f"Request timed out/failed after {max_retries} attempts: {last_err}")
+                    else:
+                        raise Exception(f"All models failed. Last error: {last_err}")
                     
                     if res is not None and res.status_code == 200:
                         res_text = res.json()["candidates"][0]["content"]["parts"][0]["text"]
@@ -2004,7 +2042,7 @@ elif page == "📷 CV Defect Detector":
         outcome = "Auto-Detect"
         uploaded_file = None
 
-        if "[IoT] Choose from Casting Samples" in source:
+        if "🎥 Choose from Casting Samples" in source:
             sample_run = st.selectbox("Select Casting Run Sample", [
                 "Run #4105 - Flawless Surface Casting",
                 "Run #4106 - Surface Crack Flaw",
@@ -2098,6 +2136,124 @@ elif page == "📷 CV Defect Detector":
                     font = ImageFont.load_default()
 
                 boxes = []
+                verdict = ""
+                tips = []
+                status_color = ""
+
+                if run_type == "flawless":
+                    verdict = "🟢 PASSED - FLAWLESS SURFACE QUALITY"
+                    status_color = "green"
+                    tips = ["Cast surface passes all dimensional & visual QA parameters.", "No process adjustments required."]
+                elif run_type == "crack":
+                    verdict = "🚨 CRITICAL FAIL - SURFACE CRACK DETECTED"
+                    status_color = "red"
+                    boxes = [
+                        {
+                            "coords": [width * 0.25, height * 0.25, width * 0.75, height * 0.75],
+                            "label": f"Crack {conf_thresh*1.4:.0%}" if conf_thresh*1.4 <= 0.99 else "Crack 94%",
+                            "color": "#ef4444"
+                        }
+                    ]
+                    tips = [
+                        "🌡️ Thermal stress cracking detected. Reduce cooling rate parameters in solidification.",
+                        "❄️ Increase in-mold cooling time before shakeout.",
+                        "⚙️ Verify alloy composition (Module 3) for optimal elongation properties."
+                    ]
+                elif run_type == "blowhole":
+                    verdict = "🔴 FAILED - SURFACE BLOWHOLE DEFECTS"
+                    status_color = "orange"
+                    boxes = [
+                        {
+                            "coords": [width * 0.15, height * 0.25, width * 0.45, height * 0.55],
+                            "label": f"Gas Blowhole {conf_thresh*1.3:.0%}" if conf_thresh*1.3 <= 0.99 else "Gas Blowhole 92%",
+                            "color": "#f59e0b"
+                        },
+                        {
+                            "coords": [width * 0.55, height * 0.45, width * 0.8, height * 0.7],
+                            "label": f"Gas Blowhole {conf_thresh*1.2:.0%}" if conf_thresh*1.2 <= 0.99 else "Gas Blowhole 88%",
+                            "color": "#f59e0b"
+                        }
+                    ]
+                    tips = [
+                        "💨 Dry sand molds thoroughly prior to pouring cast.",
+                        "🌡️ Pouring temperature is close to optimal range (1425°C), but venting must be increased.",
+                        "💧 Lower pouring velocity to reduce fluid entrainment."
+                    ]
+                elif run_type == "shrinkage":
+                    verdict = "🔴 FAILED - SOLIDIFICATION SHRINKAGE"
+                    status_color = "purple"
+                    boxes = [
+                        {
+                            "coords": [width * 0.35, height * 0.35, width * 0.7, height * 0.7],
+                            "label": f"Shrinkage Cavity {conf_thresh*1.25:.0%}" if conf_thresh*1.25 <= 0.99 else "Shrinkage Cavity 87%",
+                            "color": "#a855f7"
+                        }
+                    ]
+                    tips = [
+                        "📐 Feeding defect detected. Adjust casting gating system/riser sizing.",
+                        "🌡️ Adjust pour temperatures within 1400-1450°C to allow feed flow.",
+                        "⚙️ Optimize silicon/carbon ratios (Module 3) to improve fluid expansion."
+                    ]
+
+                # Draw bounding boxes if confidence exceeds threshold
+                for box in boxes:
+                    # Bounding box coordinates
+                    x1, y1, x2, y2 = box["coords"]
+                    color_hex = box["color"]
+                    lbl = box["label"]
+
+                    # Draw thick rectangle outline
+                    draw.rectangle([x1, y1, x2, y2], outline=color_hex, width=max(4, int(width * 0.007)))
+                    
+                    # Draw solid text background banner
+                    draw.rectangle([x1, y1 - max(20, int(height * 0.05)), x1 + max(120, int(width * 0.28)), y1], fill=color_hex)
+                    
+                    # Draw label text
+                    draw.text((x1 + 6, y1 - max(17, int(height * 0.045))), lbl, fill="white", font=font)
+
+                # Show output image
+                st.image(img, caption="Simulated Camera Stream with YOLOv8 Bounding Box Overlay", width="stretch")
+
+                # Inference Diagnostics Panel
+                st.markdown(f"""
+                <div style='background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.05);margin-bottom:15px'>
+                    <div style='display:flex;justify-content:space-between;margin-bottom:6px'>
+                        <span style='color:#aaa'>Inference Speed:</span>
+                        <span style='color:#38bdf8;font-weight:bold'>12.4 ms (TensorRT)</span>
+                    </div>
+                    <div style='display:flex;justify-content:space-between;margin-bottom:6px'>
+                        <span style='color:#aaa'>FPS Rate:</span>
+                        <span style='color:#22c55e;font-weight:bold'>80.6 FPS</span>
+                    </div>
+                    <div style='display:flex;justify-content:space-between'>
+                        <span style='color:#aaa'>AI Model Confidence:</span>
+                        <span style='color:#f59e0b;font-weight:bold'>YOLOv8x FP16</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                # Verdict Notification
+                if status_color == "green":
+                    st.success(verdict)
+                elif status_color == "orange":
+                    st.warning(verdict)
+                else:
+                    st.error(verdict)
+
+                # Metallurgy recommendations
+                st.markdown("---")
+                st.subheader("💡 Process Rectification Tips")
+                for tip in tips:
+                    st.info(tip)
+        else:
+            st.markdown("### 👈 Upload or Select a Casting Run Sample to Inspect")
+            st.markdown("""
+| Defect Type | Primary Cause | Solution |
+|-------------|---------------|----------|
+| Gas Blowholes | Moisture / Trapped Gas | Increase Venting & Dry Molds |
+| Surface Cracks | Rapid Cooling / Stresses | Slow Cooling & Check Thickness |
+| Shrinkage Cavities | Poor Feeding / Solidification | Resize Gating Riser & Feed |
+| Flawless Surface | Perfect Solidification | Maintain Optimal Process Ratios |
+""")
 
 elif page == "✏️ Diagram Generator":
     render_diagram_generator()
