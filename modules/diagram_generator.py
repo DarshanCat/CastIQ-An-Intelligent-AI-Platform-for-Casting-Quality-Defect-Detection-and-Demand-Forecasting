@@ -31,6 +31,7 @@ STRICT RULES:
 12. Font: font-family="Arial, sans-serif"
 13. Make it look professional and technical — like an engineering drawing
 14. Always add a title at the top and VSPL watermark at bottom right
+15. Viewport Coordinates: Ensure all elements are fully visible and centered within the 800x500 canvas. Do not use negative coordinates or coordinates that extend beyond 800 width or 500 height.
 
 DIAGRAM TYPES YOU SUPPORT:
 - Process flow diagrams (boxes + arrows)
